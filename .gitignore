@@ -9,6 +9,10 @@
 /design.md
 /worktree-temp/
 
+# --- 一時テストファイル ---
+/worker/.tmp-*.json
+/site/.tmp-*.json
+
 # --- モックアップ・素材（root レベルの内部用） ---
 /mockups/
 /assets/
