@@ -1,0 +1,166 @@
+---
+/**
+ * Features — セクション 4: 機能ハイライト
+ *
+ * - 4 機能カード（モバイル 1 列 / タブレット 2x2 / デスクトップ 4 列）
+ * - 背景: bg-cream-deep
+ * - 各カード内にカウントアップ訴求値（メイン）+ 静的サブ値を配置
+ * - アニメ: H2 mask-up、カード 4 枚 fadeInUp ステア、各メイン数値 count-up
+ *   ※「1〜2 ヶ月」は範囲表記のためカウントアップ対象から外し静的表示
+ */
+
+type FeatureMetric = {
+  /** カウントアップ表示するか（false なら静的テキスト） */
+  animated: boolean;
+  /** カウントアップ data-to（animated:true のときのみ参照） */
+  to?: number;
+  /** カウントアップ suffix（animated:true のときのみ参照） */
+  suffix?: string;
+  /** 静的表示文字列（animated:false のとき or fallback で表示） */
+  staticLabel?: string;
+  /** メトリック説明（メイン値の下の小ラベル） */
+  caption: string;
+};
+
+type Feature = {
+  n: string;
+  icon: string;
+  title: string;
+  titleSub: string;
+  desc: string;
+  /** メイン訴求値（カード内に大きく表示） */
+  metric: FeatureMetric;
+  /** サブ訴求値（静的テキスト、メイン値の下に） */
+  sub: string;
+};
+
+const features: Feature[] = [
+  {
+    n: '01',
+    icon: '/motifs/feather.svg',
+    title: '保護者レポート',
+    titleSub: '自動生成',
+    desc: '出席・宿題・成績データから月次レポート文章を AI が下書きします。',
+    metric: { animated: true, to: 60, suffix: '%', caption: '作成時間を削減' },
+    sub: '平均2時間 → 30分',
+  },
+  {
+    n: '02',
+    icon: '/motifs/eye-soft.svg',
+    title: '退塾予兆',
+    titleSub: 'AI 検知',
+    desc: '出席・成績・連絡パターンから退塾リスクをそっと先生に知らせます。',
+    metric: { animated: false, staticLabel: '1〜2ヶ月', caption: '前に早期検知' },
+    sub: '予兆検知率80%',
+  },
+  {
+    n: '03',
+    icon: '/motifs/message-pen.svg',
+    title: 'LINE 連絡',
+    titleSub: '下書きアシスト',
+    desc: '保護者への定型連絡を、相手別のトーンで AI が下書きします。',
+    metric: { animated: true, to: 70, suffix: '%', caption: '作成時間を削減' },
+    sub: '24時間365日対応',
+  },
+  {
+    n: '04',
+    icon: '/motifs/receipt.svg',
+    title: '月謝管理',
+    titleSub: 'シンプル運用',
+    desc: '月謝発生・入金・未納の追跡を最小限の操作で管理できます。',
+    metric: { animated: true, to: 70, suffix: '%', caption: '集計時間を削減' },
+    sub: '未納検知を自動化',
+  },
+];
+---
+
+<section
+  id="features"
+  aria-labelledby="features-heading"
+  class="bg-cream-deep relative overflow-hidden py-24 md:py-32"
+>
+  <div class="relative mx-auto max-w-6xl px-6 md:px-12">
+    <h2
+      id="features-heading"
+      class="font-serif font-bold text-ink leading-[1.4]
+             text-[28px] md:text-[36px] lg:text-[40px] max-w-[820px]"
+    >
+      <span class="mask-up"><span>先生の<span class="text-sage-dark">「教える以外」</span>を、</span></span><br class="md:hidden" />
+      <span class="mask-up" style="transition-delay: 0.15s;"><span>まるごと引き受けます。</span></span>
+    </h2>
+
+    <ul class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4" role="list">
+      {features.map((f, idx) => (
+        <li
+          class="group relative bg-white rounded-[12px] p-7 shadow-panel
+                 border border-line/60 transition-transform hover:-translate-y-1
+                 flex flex-col gap-4 js-fadeInUp"
+          data-stagger={String(idx)}
+        >
+          <span
+            aria-hidden="true"
+            class="inline-flex items-center justify-center w-12 h-12 rounded-full
+                   bg-sage/10"
+            style="color: var(--color-sage);"
+          >
+            <img src={f.icon} alt="" class="w-7 h-7" loading="lazy" />
+          </span>
+
+          <h3 class="font-serif font-bold text-[18px] md:text-[20px] text-ink leading-[1.5]">
+            {f.title}<br />{f.titleSub}
+          </h3>
+
+          {/* メイン訴求値（カウントアップ or 静的）+ caption（縦並び） */}
+          <div class="mt-1">
+            {f.metric.animated ? (
+              <span
+                class="count-up font-display font-bold text-terracotta-cta text-[40px] md:text-[44px] leading-none tracking-tight inline-block"
+                data-from="0"
+                data-to={String(f.metric.to)}
+                data-duration="1200"
+                data-suffix={f.metric.suffix ?? ''}
+              >
+                0{f.metric.suffix ?? ''}
+              </span>
+            ) : (
+              <span
+                class="font-display font-bold text-terracotta-cta text-[34px] md:text-[36px] leading-none tracking-tight whitespace-nowrap inline-block"
+              >
+                {f.metric.staticLabel}
+              </span>
+            )}
+            <p class="text-[13px] md:text-[14px] text-ink-soft leading-tight mt-1.5">
+              {f.metric.caption}
+            </p>
+          </div>
+
+          {/* サブ訴求値（静的テキスト） */}
+          <p class="text-[14px] text-ink-soft leading-[1.7]">
+            {f.sub}
+          </p>
+
+          {/* 機能説明文 */}
+          <p class="text-[15px] md:text-[16px] leading-[1.85] text-ink-soft">
+            {f.desc}
+          </p>
+
+          <span
+            aria-hidden="true"
+            class="absolute bottom-5 right-5 font-display text-[11px] font-bold
+                   text-terracotta-cta tracking-wider"
+          >
+            {f.n} / 04
+          </span>
+        </li>
+      ))}
+    </ul>
+
+    <p
+      class="mt-10 text-[13px] md:text-[14px] leading-[1.85] text-ink-soft js-fadeInUp"
+    >
+      ※ 本セクションの 4 機能は架空ポートフォリオ作品としての訴求です。
+      AI 体験デモは ① 保護者レポート / ② 退塾予兆 AI のみを対象とします。<br />
+      ※ 上記カウントアップ数値・参考値（60% / 70% / 80% / 1〜2ヶ月 等）はいずれも業界相場をもとにした架空ポートフォリオ訴求用の参考値であり、実測値ではありません。
+    </p>
+  </div>
+</section>

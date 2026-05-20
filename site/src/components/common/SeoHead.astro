@@ -1,0 +1,58 @@
+---
+import {
+  organizationJsonLd,
+  websiteJsonLd,
+  serviceJsonLd,
+  faqPageJsonLd,
+  type FaqItem,
+} from '../../lib/jsonld';
+
+export interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  ogImage?: string;
+  /** FAQPage JSON-LD を出力する場合のみ渡す（トップページのみ） */
+  faqs?: FaqItem[];
+}
+
+const {
+  title,
+  description,
+  canonical,
+  ogImage = '/og-image.png',
+  faqs,
+} = Astro.props;
+
+const siteUrl = Astro.site?.toString().replace(/\/$/, '') ?? '';
+const canonicalUrl = canonical ?? `${siteUrl}${Astro.url.pathname}`;
+const ogImageUrl = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
+
+const jsonldBlocks = [
+  organizationJsonLd(siteUrl),
+  websiteJsonLd(siteUrl),
+  serviceJsonLd(siteUrl),
+  ...(faqs && faqs.length > 0 ? [faqPageJsonLd(faqs)] : []),
+];
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:image" content={ogImageUrl} />
+<meta property="og:site_name" content="JukuMate" />
+<meta property="og:locale" content="ja_JP" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImageUrl} />
+
+{jsonldBlocks.map((block) => (
+  <script type="application/ld+json" set:html={JSON.stringify(block)} />
+))}

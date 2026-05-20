@@ -1,0 +1,56 @@
+---
+/**
+ * Header — 共通ヘッダー
+ *
+ * - ≥ 768px: ロゴ + ナビ + CTA の横並び
+ * - < 768px: ロゴ + ハンバーガーボタン → MobileMenu ドロワー
+ */
+import MobileMenu from './MobileMenu.astro';
+
+// /privacy /terms 等の別ページからもトップのセクションへ正しく飛べるよう、
+// ルート相対 (/#xxx) に統一する。
+const navItems = [
+  { href: '/#features', label: '機能' },
+  { href: '/#ai-experience', label: 'AI 体験' },
+  { href: '/#pricing', label: '料金' },
+  { href: '/#faq', label: 'よくある質問' },
+];
+---
+
+<header class="bg-cream/90 backdrop-blur border-b border-line sticky top-0 z-50">
+  <div class="mx-auto px-6 md:px-12 lg:px-20 h-16 flex items-center justify-between">
+    <a href="/" class="font-sans text-ink text-[18px] font-extrabold tracking-[0.06em]">
+      JukuMate
+    </a>
+
+    {/* デスクトップ: ナビ + CTA（≥ 768px、現状の横並び維持） */}
+    <div class="hidden md:flex items-center gap-8 md:gap-10">
+      <nav aria-label="Primary">
+        <ul class="flex items-center gap-8 text-sm text-ink">
+          {navItems.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class="hover:text-sage-dark transition-colors"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <button
+        type="button"
+        data-form-trigger
+        class="inline-flex items-center gap-2 bg-ink hover:bg-ink-darker text-cream text-[13px] font-bold tracking-[0.04em] px-7 py-3.5 rounded-[4px] transition-colors cursor-pointer border-0"
+        aria-label="30分・無料相談を予約する"
+      >
+        30分・無料相談を予約する
+      </button>
+    </div>
+
+    {/* モバイル: ハンバーガー（< 768px、ボタン + ドロワー） */}
+    <MobileMenu navItems={navItems} />
+  </div>
+</header>

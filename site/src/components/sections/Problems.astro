@@ -1,0 +1,68 @@
+---
+/**
+ * Problems — セクション 2: 課題共感
+ *
+ * - 中央寄せ無し、3 カード横並び（タブレット以上）
+ * - 背景: cream + 方眼紙テクスチャ
+ * - 各カード: 白背景 / 角丸 12px / shadow-panel / hover -translate-y-1
+ * - アニメ: H2 mask-up（2 段）、カード 3 枚 fadeInUp ステア（stagger 0/1/2）
+ */
+
+const problems = [
+  { n: '01', text: '月次の保護者レポート、', sub: '手書きで深夜まで。' },
+  { n: '02', text: 'LINE と連絡帳と電話、', sub: '3 つ管理してて漏れる。' },
+  { n: '03', text: '業務管理ソフト入れたけど、', sub: '結局文章を書くのは自分。' },
+];
+---
+
+<section
+  id="problems"
+  aria-labelledby="problems-heading"
+  class="bg-cream relative overflow-hidden py-20 md:py-28 lg:py-40 xl:py-44"
+>
+  {/* 方眼紙パターン背景（ink-soft 15% 内蔵） */}
+  <div
+    aria-hidden="true"
+    class="absolute inset-0 bg-grid-paper pointer-events-none"
+  ></div>
+
+  <div class="relative mx-auto max-w-screen-xl px-6 md:px-8">
+    <h2
+      id="problems-heading"
+      class="font-serif font-bold text-ink leading-[1.4]
+             text-[28px] md:text-[36px] lg:text-[52px] xl:text-[56px] max-w-[760px] lg:max-w-[960px]"
+    >
+      <span class="mask-up"><span>先生のあるある、</span></span><br class="md:hidden" />
+      <span class="mask-up" style="transition-delay: 0.15s;"><span>ありませんか？</span></span>
+    </h2>
+
+    <ul class="mt-12 lg:mt-20 grid gap-6 lg:gap-6 lg:grid-cols-3 lg:items-stretch" role="list">
+      {problems.map((p, idx) => (
+        <li
+          class="group relative bg-white rounded-[12px] p-7 md:p-8 lg:p-6 xl:p-7 shadow-panel
+                 border border-line/60 transition-transform hover:-translate-y-1
+                 js-fadeInUp h-full flex flex-col lg:justify-center"
+          data-stagger={String(idx)}
+        >
+          <span
+            aria-hidden="true"
+            class="absolute top-5 right-5 lg:top-7 lg:right-7 font-display text-[12px] lg:text-[15px] font-bold text-terracotta-cta tracking-wider"
+          >
+            {p.n}
+          </span>
+          <img
+            src="/motifs/pencil.svg"
+            alt=""
+            aria-hidden="true"
+            class="w-6 h-6 lg:w-10 lg:h-10 mb-4 lg:mb-4 text-sage"
+            style="color: var(--color-sage);"
+            loading="lazy"
+          />
+          <p class="font-serif text-[18px] md:text-[19px] lg:text-[22px] xl:text-[23px] leading-[1.85] lg:leading-[1.8] text-ink">
+            <span class="whitespace-nowrap">{p.text}</span><br /><span class="whitespace-nowrap">{p.sub}</span>
+          </p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>

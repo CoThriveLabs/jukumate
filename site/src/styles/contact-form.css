@@ -1,0 +1,465 @@
+/**
+ * Phase 4 動的フォーム専用スタイル — 設計書 §11-1 / §3-3 / §3-5 準拠
+ *
+ * - モーダル本体（オーバーレイ + ダイアログ）
+ * - フォームフィールド共通装飾
+ * - flatpickr セージグリーン上書きテーマ（.fp-sage-theme）
+ * - 完了画面・エラーバナー・送信中スピナー
+ *
+ * 既存 global.css の `@theme` トークン（--color-sage, --color-cream, --color-line 等）を参照し、
+ * 新規トークンは定義しない（凍結ルール）。
+ *
+ * 注意:
+ *   - Tailwind の @theme ブロックではなく素の CSS。Astro が global.css 経由でバンドルする。
+ *   - フォーム関連は idle 時に display:none で隠す。JS（useContactForm.ts）が data-form-state を切替。
+ */
+
+/* ====== flatpickr 本体 CSS 取り込み ====== */
+@import "flatpickr/dist/flatpickr.css";
+
+/* ====== モーダルオーバーレイ + ダイアログ ====== */
+
+.contact-modal[hidden] {
+  display: none !important;
+}
+
+.contact-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: rgba(44, 42, 38, 0.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  overflow-y: auto;
+  /* iOS Safari でアドレスバー隠れた状態でも下端まで届くように */
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.contact-modal__dialog {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  margin: auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 24px 48px -12px rgba(40, 30, 20, 0.28),
+              0 8px 16px -4px rgba(40, 30, 20, 0.14);
+  padding: 2rem 1.5rem 2rem;
+  /* モバイル時に内側スクロール許容（ダイアログ自体は内側 scroll を持たず、外側オーバーレイがスクロール） */
+}
+
+@media (min-width: 768px) {
+  .contact-modal__dialog {
+    padding: 2.25rem 2.5rem 2.25rem;
+  }
+}
+
+/* 閉じるボタン（×） */
+.contact-modal__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.contact-modal__close:hover {
+  background: var(--color-cream-deep);
+  color: var(--color-ink);
+}
+.contact-modal__close:focus-visible {
+  outline: none;
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 2px rgba(107, 142, 90, 0.25);
+}
+.contact-modal__close[disabled] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ====== タイトル / リード ====== */
+
+.contact-modal__title {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  color: var(--color-sage-dark);
+  margin: 0 0 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .contact-modal__title {
+    font-size: 1.5rem;
+  }
+}
+
+.contact-modal__lead {
+  font-size: 0.875rem;
+  line-height: 1.85;
+  color: var(--color-ink-soft);
+  margin: 0 0 1.25rem;
+}
+
+/* ====== フォームフィールド共通 ====== */
+
+.cf-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  /* 二重送信防止: submitting 中はポインタイベントを止める */
+}
+.cf-form[data-cf-state="submitting"] :is(input, select, textarea, button) {
+  pointer-events: none;
+}
+
+.cf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.cf-label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.cf-label .cf-required {
+  color: var(--color-terracotta-cta);
+  margin-left: 0.25rem;
+}
+
+.cf-input,
+.cf-select {
+  width: 100%;
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  padding: 0.625rem 0.75rem;
+  background: #ffffff;
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  color: var(--color-ink);
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+  /* iOS Safari の自動ズーム抑止: 16px 以上 */
+  font-size: 16px;
+}
+
+.cf-input::placeholder {
+  color: color-mix(in srgb, var(--color-ink-soft) 60%, transparent);
+}
+
+.cf-input:focus,
+.cf-select:focus {
+  outline: none;
+  border-color: var(--color-sage);
+  box-shadow: 0 0 0 3px rgba(107, 142, 90, 0.18);
+}
+.cf-input[aria-invalid="true"],
+.cf-select[aria-invalid="true"] {
+  border-color: var(--color-terracotta-cta);
+  background: rgba(252, 239, 231, 0.4);
+}
+
+.cf-help {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+.cf-error-message {
+  font-size: 0.75rem;
+  color: var(--color-terracotta-cta-dark);
+  line-height: 1.6;
+  min-height: 1rem;
+}
+
+/* 時間帯ラジオ */
+.cf-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+@media (min-width: 480px) {
+  .cf-radio-group {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+}
+
+.cf-radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: var(--color-ink);
+  cursor: pointer;
+  padding: 0.375rem 0.5rem;
+  border-radius: 6px;
+}
+.cf-radio-option:hover {
+  background: var(--color-cream-deep);
+}
+.cf-radio-option input[type="radio"] {
+  accent-color: var(--color-sage);
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+}
+
+/* 同意チェック */
+.cf-consent {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-start;
+  padding: 0.625rem 0.75rem;
+  background: var(--color-cream);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: var(--color-ink);
+}
+.cf-consent input[type="checkbox"] {
+  accent-color: var(--color-sage);
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.cf-consent label {
+  cursor: pointer;
+}
+
+/* Turnstile ウィジェット配置（Phase 4.6） */
+.cf-turnstile-wrapper {
+  margin: 0.5rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* ハニーポット: 視認不可・Tab 順から外す。a11y 上は完全に隠す */
+.cf-honeypot {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ====== 候補日リスト（flatpickr 横の表示） ====== */
+
+.cf-candidates-summary {
+  font-size: 0.8125rem;
+  color: var(--color-ink);
+  margin: 0.375rem 0 0;
+  min-height: 1.25rem;
+}
+.cf-candidates-summary ol {
+  list-style: none;
+  padding: 0;
+  margin: 0.375rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cf-candidates-summary li {
+  font-size: 0.875rem;
+  color: var(--color-sage-dark);
+  font-weight: 600;
+}
+.cf-candidates-summary li::before {
+  content: "・";
+  margin-right: 0.125rem;
+  color: var(--color-sage);
+}
+
+/* ====== 送信ボタン ====== */
+
+.cf-actions {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+@media (min-width: 480px) {
+  .cf-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.cf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.cf-btn--primary {
+  background: var(--color-terracotta-cta);
+  color: var(--color-cream);
+}
+.cf-btn--primary:hover:not([disabled]) {
+  background: var(--color-terracotta-cta-dark);
+}
+.cf-btn--primary[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+.cf-btn--secondary {
+  background: #ffffff;
+  color: var(--color-ink);
+  border-color: var(--color-line);
+}
+.cf-btn--secondary:hover:not([disabled]) {
+  background: var(--color-cream-deep);
+}
+.cf-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(107, 142, 90, 0.3);
+}
+
+/* スピナー（送信中） */
+.cf-spinner {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #ffffff;
+  animation: cf-spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes cf-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ====== 状態切替（idle / submitting / success / error） ====== */
+
+/* デフォルト: idle で form 見える、success/error の追加要素は隠す */
+.cf-form .cf-success,
+.cf-form .cf-error-banner,
+.cf-form .cf-state-submitting {
+  display: none;
+}
+
+.cf-form[data-cf-state="error"] .cf-error-banner {
+  display: block;
+}
+.cf-form[data-cf-state="success"] .cf-fields,
+.cf-form[data-cf-state="success"] .cf-actions {
+  display: none;
+}
+.cf-form[data-cf-state="success"] .cf-success {
+  display: block;
+}
+
+/* エラーバナー */
+.cf-error-banner {
+  padding: 0.75rem 1rem;
+  background: var(--color-terracotta-pale);
+  border: 1px solid var(--color-terracotta-light);
+  border-radius: 6px;
+  color: var(--color-terracotta-cta-dark);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* 完了画面 */
+.cf-success {
+  text-align: center;
+  padding: 1.5rem 0 0.5rem;
+}
+.cf-success__title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-sage-dark);
+  margin: 0 0 0.75rem;
+}
+.cf-success__body {
+  font-size: 0.9375rem;
+  line-height: 1.85;
+  color: var(--color-ink);
+  margin: 0 0 1.5rem;
+}
+
+/* ====== flatpickr セージグリーンテーマ上書き（.fp-sage-theme） ====== */
+
+.fp-sage-theme.flatpickr-calendar {
+  font-family: var(--font-sans);
+  box-shadow: 0 8px 24px -8px rgba(40, 30, 20, 0.18);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+}
+.fp-sage-theme .flatpickr-day.selected,
+.fp-sage-theme .flatpickr-day.startRange,
+.fp-sage-theme .flatpickr-day.endRange,
+.fp-sage-theme .flatpickr-day.selected:hover,
+.fp-sage-theme .flatpickr-day.startRange:hover,
+.fp-sage-theme .flatpickr-day.endRange:hover {
+  background: var(--color-sage);
+  border-color: var(--color-sage);
+  color: #ffffff;
+}
+.fp-sage-theme .flatpickr-day:hover {
+  background: color-mix(in srgb, var(--color-sage) 12%, transparent);
+}
+.fp-sage-theme .flatpickr-day.today {
+  border-color: var(--color-sage-dark);
+}
+.fp-sage-theme .flatpickr-day.today:not(.selected) {
+  color: var(--color-sage-dark);
+  font-weight: 700;
+}
+.fp-sage-theme .flatpickr-day.flatpickr-disabled,
+.fp-sage-theme .flatpickr-day.flatpickr-disabled:hover {
+  color: color-mix(in srgb, var(--color-muted) 50%, transparent);
+  background: transparent;
+}
+
+/* インライン flatpickr （モーダル内に直接埋める用） */
+.cf-flatpickr-inline {
+  width: 100%;
+}
+.cf-flatpickr-inline .flatpickr-calendar.inline {
+  width: 100%;
+  max-width: 100%;
+  box-shadow: none;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+/* reduced-motion 配慮: モーダル backdrop blur を OFF */
+@media (prefers-reduced-motion: reduce) {
+  .contact-modal {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .cf-spinner {
+    animation-duration: 1.5s;
+  }
+}

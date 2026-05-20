@@ -1,0 +1,163 @@
+---
+/**
+ * FAQ — セクション 8: よくあるご質問（7 問アコーディオン）
+ *
+ * 構造:
+ *   - H2「よくあるご質問」(sage-dark, 1 行)
+ *   - リード文
+ *   - <details> 7 問の縦並びアコーディオン（CV 重視順）
+ *
+ * JSON-LD FAQPage（SeoHead）からも export const faqs を import している。
+ */
+
+export const faqs = [
+  {
+    q: '初月無料の条件は？',
+    a: [
+      'ご利用開始から30日間、無料でじっくりお試しいただけます。','クレジットカードのご登録も不要で、無料期間が終わっても自動で課金されることはございません。安心してお試しください。',
+    ],
+  },
+  {
+    q: '解約はいつでも可能ですか？',
+    a: 'はい、いつでもご解約いただけます。違約金や最低利用期間といった縛りは一切ございませんので、どうぞご安心ください。',
+  },
+  {
+    q: '導入支援は無料ですか？',
+    a: [
+      'はい、無料で承っております。',
+      '初期セットアップ・既存データの移行・操作レクチャー（オンライン60分）まで、すべて費用はいただきません。',
+      '「最初の一歩」のところで先生が不安にならないよう、最後まで伴走させていただきます。',
+    ],
+  },
+  {
+    q: 'ベータ版の段階で導入する<span class="whitespace-nowrap">メリット・デメリットは？</span>',
+    a: [
+      'メリットは、導入支援込み・先行ユーザー価格でご利用いただけること、そして新機能をいち早くご案内できることです。',
+      '気をつけていただきたい点として、まだ機能を拡充している段階ですので、一部の仕様が変わる可能性があります。',
+      '変更がある際は必ず事前にメールでご案内いたしますので、突然変わってしまうことはございません。',
+    ],
+  },
+  {
+    q: '生徒データのセキュリティは？',
+    a: [
+      '大切なお子さまの情報ですので、しっかりお守りします。',
+      'データは国内のクラウドに暗号化して保存し（保存時 AES-256 / 通信時 TLS 1.3）、保護者さま・生徒さんの個人情報は最小限しかお預かりしません。',
+      'AI の学習用途にも一切使用いたしません。',
+      '詳細はフッターのプライバシーポリシーよりご確認いただけます。',
+    ],
+  },
+  {
+    q: 'Comiru や他の塾管理ソフトと<span class="whitespace-nowrap">一緒に使えますか？</span>',
+    a: [
+      'はい、ご利用いただけます。JukuMate は独立して動くツールですので、他社サービスとのシステム連携やデータ連携は行っておりません。それぞれを並行してお使いいただく形になります。',
+      'ひとつだけご注意点として、現在ご契約中の塾管理ソフトの利用規約で、他サービスの併用に制限がないかは事前にご確認をお願いいたします。',
+      'ご契約規約のご確認は恐れ入りますがお客さま側でお願いいたします。',
+    ],
+  },
+  {
+    q: '電話サポートはありますか？',
+    a: 'はい、もちろんです。導入時のご相談から日々のちょっとしたご質問まで、メールでもお電話でもお気軽にご連絡ください。',
+  },
+];
+---
+
+<section
+  id="faq"
+  aria-labelledby="faq-heading"
+  class="bg-cream-deep relative overflow-hidden py-24 md:py-32"
+>
+  <div class="relative mx-auto max-w-3xl px-6 md:px-12">
+    <h2
+      id="faq-heading"
+      class="font-serif font-bold text-sage-dark leading-[1.5] text-center text-[28px] md:text-[40px] lg:text-[44px]"
+    >
+      <span class="mask-up"><span>よくあるご質問</span></span>
+    </h2>
+
+    <p
+      class="mt-8 text-[15px] md:text-[16px] leading-[1.95] text-ink-soft text-center max-w-[640px] mx-auto js-fadeInUp"
+      data-stagger="1"
+    >
+      ご検討中の先生方からよくいただくご質問をまとめました。<br />
+      ここに無い疑問は、個別相談で直接お応えします。
+    </p>
+
+    <ul
+      class="mt-12 md:mt-14 space-y-0 border-t border-line/60 js-fadeInUp"
+      data-stagger="2"
+      role="list"
+    >
+      {faqs.map((item, idx) => (
+        <li>
+          <details class="faq-item group border-b border-line/60">
+            <summary class="faq-summary flex items-start justify-between gap-4 py-5 md:py-6 px-3 cursor-pointer list-none focus-visible:outline-2 focus-visible:outline-sage-dark focus-visible:outline-offset-2">
+              <span class="flex items-start gap-2 flex-1 font-serif text-[16px] md:text-[18px] font-bold text-ink leading-[1.6] min-w-0">
+                <span class="text-sage-dark tabular-nums flex-shrink-0">Q{idx + 1}.</span>
+                <span class="flex-1 min-w-0" set:html={item.q}></span>
+              </span>
+              <span class="faq-marker shrink-0 mt-1 text-sage-dark" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </span>
+            </summary>
+            <div class="faq-content">
+              <div class="pb-6 px-8 text-[15px] md:text-[16px] leading-[1.95] text-ink-soft">
+                {Array.isArray(item.a) ? (
+                  <div class="space-y-2">
+                    {item.a.map((para) => (
+                      <p>{para}</p>
+                    ))}
+                  </div>
+                ) : (
+                  <p>{item.a}</p>
+                )}
+              </div>
+            </div>
+          </details>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  /* details ネイティブマーカー除去（Safari / Firefox / Chrome 対応） */
+  .faq-summary::-webkit-details-marker { display: none; }
+  .faq-summary::marker { display: none; }
+
+  /* アコーディオン高さアニメ（grid-template-rows 0fr → 1fr トリック） */
+  .faq-item .faq-content {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s cubic-bezier(.4, .4, 0, 1);
+  }
+  .faq-item .faq-content > * {
+    overflow: hidden;
+    min-height: 0;
+  }
+  .faq-item[open] .faq-content {
+    grid-template-rows: 1fr;
+  }
+
+  /* 開閉マーカー回転（+ → ×） */
+  .faq-item .faq-marker {
+    transition: transform 0.3s cubic-bezier(.4, .4, 0, 1);
+  }
+  .faq-item[open] .faq-marker {
+    transform: rotate(45deg);
+  }
+
+  /* 開いている設問の薄い背景色（内部仕様書 §B-5） */
+  .faq-item[open] {
+    background-color: color-mix(in srgb, var(--color-cream) 70%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-item .faq-content,
+    .faq-item .faq-marker {
+      transition: none !important;
+    }
+  }
+</style>

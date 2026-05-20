@@ -1,0 +1,265 @@
+---
+/**
+ * MobileMenu — v6 完全書き直し（仕様調査ベース）
+ *
+ * 真因対策:
+ *   1. Tailwind v4 の translate-x-* は translate: プロパティ出力で v3 と非互換
+ *      → Tailwind utility 完全不使用、素 CSS の transform: translateX(...) のみ
+ *   2. 祖先（Header 等）の transform / filter / backdrop-filter / will-change で
+ *      position:fixed の基準と stacking context が壊れる
+ *      → JS で document.body 直下に portal、isolation:isolate + backdrop-filter:none
+ *   3. Astro scoped CSS の specificity 競合
+ *      → <style is:global> で記述、ID/data 属性ベース
+ *   4. キャッシュバスト: 旧 jm-mnav__* 系を完全廃棄、jm-mobile-drawer / jm-overlay へ rename
+ */
+export interface Props {
+  navItems: Array<{ href: string; label: string }>;
+}
+const { navItems } = Astro.props;
+---
+
+<!-- 1. ハンバーガーボタン（Header 内に残す） -->
+<button
+  type="button"
+  id="jm-menu-trigger"
+  class="md:hidden inline-flex items-center justify-center w-11 h-11 -mr-2 text-ink"
+  aria-label="メニューを開く"
+  aria-expanded="false"
+  aria-controls="jm-mobile-drawer"
+>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+  </svg>
+</button>
+
+<!-- 2. drawer 本体（JS で body 直下に portal される） -->
+<div id="jm-mobile-root" hidden>
+  <div id="jm-overlay" data-open="false" aria-hidden="true"></div>
+  <aside
+    id="jm-mobile-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-label="メインメニュー"
+    data-open="false"
+    tabindex="-1"
+  >
+    <div class="jm-drawer-header">
+      <span class="jm-drawer-title">メニュー</span>
+      <button type="button" id="jm-menu-close" class="jm-close" aria-label="メニューを閉じる">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+    <nav class="jm-drawer-nav" aria-label="Primary mobile">
+      <ul>
+        {navItems.map((l) => (
+          <li><a href={l.href} data-jm-link>{l.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+    <button
+      type="button"
+      data-form-trigger
+      data-jm-link
+      class="jm-cta"
+      aria-label="30分・無料相談を予約"
+    >
+      30分・無料相談を予約
+    </button>
+  </aside>
+</div>
+
+<style is:global>
+  /* portal mount 後に display:block */
+  #jm-mobile-root[data-mounted="true"] { display: block; }
+
+  /* === Overlay === */
+  #jm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44, 42, 38, 0.55); /* ink 半透明 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 240ms ease;
+    z-index: 9998;
+  }
+  #jm-overlay[data-open="true"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* === Drawer === */
+  #jm-mobile-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100dvh;
+    width: min(86vw, 360px);
+    /* ★ベタの不透明色（cream に統一、絶対に半透明にしない） */
+    background-color: #FAF8F3;
+    color: #2C2A26;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+    /* ★Tailwind utility に頼らない素 CSS transform */
+    transform: translateX(100%);
+    transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+    z-index: 9999;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* 祖先からの継承事故防止 */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    mix-blend-mode: normal;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+  #jm-mobile-drawer[data-open="true"] {
+    transform: translateX(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #jm-mobile-drawer, #jm-overlay { transition: none !important; }
+  }
+
+  .jm-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(92, 84, 74, 0.15);
+  }
+  .jm-drawer-title {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #2C2A26;
+  }
+  .jm-close {
+    width: 44px; height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: 0; border-radius: 8px; cursor: pointer;
+    color: #2C2A26;
+    margin-right: -8px;
+  }
+  .jm-close:hover { background: rgba(92, 84, 74, 0.08); }
+
+  .jm-drawer-nav { padding: 8px 0; flex: 1; }
+  .jm-drawer-nav ul { list-style: none; margin: 0; padding: 0; }
+  .jm-drawer-nav a {
+    display: block;
+    padding: 16px 24px;
+    text-decoration: none;
+    color: #2C2A26;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(92, 84, 74, 0.12);
+    transition: color 200ms ease;
+  }
+  .jm-drawer-nav a:hover { color: #5A7A4A; }
+
+  .jm-cta {
+    margin: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #2C2A26;
+    color: #FAF8F3;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 16px 24px;
+    border-radius: 4px;
+    border: 0;
+    cursor: pointer;
+    transition: background-color 200ms ease;
+  }
+  .jm-cta:hover { background-color: #1A1814; }
+
+  /* === Body scroll lock === */
+  html.jm-no-scroll, body.jm-no-scroll {
+    overflow: hidden !important;
+    touch-action: none;
+  }
+</style>
+
+<script>
+  // body 直下に portal して親の stacking context から離脱
+  const root = document.getElementById('jm-mobile-root');
+  if (root && root.parentElement !== document.body) {
+    document.body.appendChild(root);
+    root.removeAttribute('hidden');
+    root.setAttribute('data-mounted', 'true');
+  }
+
+  const trigger = document.getElementById('jm-menu-trigger');
+  const overlay = document.getElementById('jm-overlay');
+  const drawer  = document.getElementById('jm-mobile-drawer');
+  const close   = document.getElementById('jm-menu-close');
+  const links   = drawer?.querySelectorAll('[data-jm-link]') ?? [];
+
+  let lastFocused: HTMLElement | null = null;
+  let savedScrollY = 0;
+
+  const focusables = () =>
+    drawer!.querySelectorAll<HTMLElement>(
+      'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])'
+    );
+
+  function open() {
+    if (!drawer || !overlay || !trigger) return;
+    lastFocused = document.activeElement as HTMLElement | null;
+    savedScrollY = window.scrollY || window.pageYOffset || 0;
+    drawer.dataset.open = 'true';
+    overlay.dataset.open = 'true';
+    trigger.setAttribute('aria-expanded', 'true');
+    trigger.setAttribute('aria-label', 'メニューを閉じる');
+    // body scroll lock（position:fixed + top:- 方式は使わず、overflow:hidden で固定）
+    document.documentElement.classList.add('jm-no-scroll');
+    document.body.classList.add('jm-no-scroll');
+    requestAnimationFrame(() => {
+      (focusables()[0] ?? drawer).focus();
+    });
+  }
+  function close_() {
+    if (!drawer || !overlay || !trigger) return;
+    drawer.dataset.open = 'false';
+    overlay.dataset.open = 'false';
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-label', 'メニューを開く');
+    document.documentElement.classList.remove('jm-no-scroll');
+    document.body.classList.remove('jm-no-scroll');
+    if (lastFocused && typeof lastFocused.focus === 'function') {
+      lastFocused.focus();
+    }
+  }
+
+  trigger?.addEventListener('click', open);
+  close?.addEventListener('click', close_);
+  overlay?.addEventListener('click', close_);
+  links.forEach(a => a.addEventListener('click', close_));
+
+  // Esc で閉じる + Tab focus trap
+  document.addEventListener('keydown', (e) => {
+    if (drawer?.dataset.open !== 'true') return;
+    if (e.key === 'Escape') { e.preventDefault(); close_(); return; }
+    if (e.key === 'Tab') {
+      const items = Array.from(focusables());
+      if (!items.length) return;
+      const first = items[0];
+      const last  = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    }
+  });
+
+  // 768px 以上にリサイズしたら閉じる
+  const mq = window.matchMedia('(min-width: 768px)');
+  mq.addEventListener('change', (e) => { if (e.matches) close_(); });
+</script>

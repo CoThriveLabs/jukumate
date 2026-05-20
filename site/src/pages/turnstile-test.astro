@@ -1,0 +1,49 @@
+---
+/**
+ * __turnstile_test — TurnstileWidget の単体動作確認用テストハーネス
+ * Phase 4.6 セキュリティ強化 / Playwright tests/turnstile.spec.ts から参照される。
+ *
+ * 注意:
+ *  - 本ページは Playwright テスト専用。`__` プレフィックスで開発・テスト用と明示。
+ *  - 本番ユーザーが偶然踏んでも実害ないが、サイトマップやナビゲーションには載せない。
+ *  - 本番リリース前に SEO クローラ対策で `<meta name="robots" content="noindex">` を付けている。
+ *  - 統合後（ContactFormModal に組み込まれた後）も、ウィジェット単体回帰テスト用に維持。
+ */
+import TurnstileWidget from '../components/forms/TurnstileWidget.astro';
+
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || 'MOCKED_FOR_LOCAL_TESTING';
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Turnstile Widget Test Harness</title>
+  </head>
+  <body>
+    <main>
+      <h1>Turnstile Test Harness</h1>
+      <p data-test-site-key={siteKey}>siteKey: {siteKey}</p>
+
+      <div id="received-token" data-received-token="">
+        (no token yet)
+      </div>
+
+      <TurnstileWidget siteKey={siteKey} callbackName="onTurnstileSuccess" />
+
+      <script is:inline>
+        // テストから観測できるよう、コールバックを window に登録し DOM にも反映する
+        /** @type {any} */ (window).onTurnstileSuccess = function (token) {
+          var el = document.getElementById('received-token');
+          if (el) {
+            el.setAttribute('data-received-token', token);
+            el.textContent = 'token: ' + token;
+          }
+          /** @type {any} */ (window).__LAST_TURNSTILE_TOKEN__ = token;
+        };
+      </script>
+    </main>
+  </body>
+</html>

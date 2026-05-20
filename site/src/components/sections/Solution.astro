@@ -1,0 +1,100 @@
+---
+/**
+ * Solution — セクション 3: 解決策
+ *
+ * - 中央寄せ（max-w-4xl）
+ * - 背景: bg-paper-book（本のページ感を表現）
+ * - 縦余白: py-32 md:py-48 lg:py-56
+ * - 上端凹み: Problems の方眼紙テクスチャを継続させたカスタム実装
+ * - 下端凹み: BookEdge コンポーネント + cream-deep
+ * - 鉛筆 SVG: 右上、回転 18deg、opacity 0.08、タブレット以上のみ表示
+ * - アニメ: H2 mask-up（2 段）、本文 + 注釈 fadeInUp ステア
+ */
+import BookEdge from '../common/BookEdge.astro';
+---
+
+<section
+  id="solution"
+  aria-labelledby="solution-heading"
+  class="bg-paper-book relative overflow-hidden py-32 md:py-48 lg:py-56"
+>
+  {/*
+    上端: Problems の方眼紙テクスチャを継続させた本の見開き溝
+    - 凹み部分（path で塗らない領域）= bg-cream + bg-grid-paper の絶対配置 div が透けて見える
+    - 凸部分（path で塗る領域）= Solution 本体色 (paper-book) で塗る
+    - これにより「凹み = 方眼紙、本体 = ベージュ」のメリハリが出る
+  */}
+  <div class="absolute top-0 left-0 right-0 w-full h-8 md:h-12 lg:h-16 pointer-events-none z-[1] bg-cream" aria-hidden="true">
+    <div class="absolute inset-0 bg-grid-paper"></div>
+  </div>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 2200 100"
+    preserveAspectRatio="none"
+    class="absolute top-0 left-0 right-0 w-full h-8 md:h-12 lg:h-16 pointer-events-none z-[2] block"
+    aria-hidden="true"
+    focusable="false"
+  >
+    {/*
+      凸形状（既存 BookEdge top path の補集合）:
+      既存 path "M0,0 V100 C580,-60 920,40 1100,100 C1280,40 1620,-60 2200,100 V0 Z" は凹み部分を塗る。
+      その補集合（凸部分）は下端から左右の弧を上に登り、最後に下端水平線で閉じる:
+      "M0,100 C580,-60 920,40 1100,100 C1280,40 1620,-60 2200,100 H0 Z"
+    */}
+    <path
+      d="M0,100 C580,-60 920,40 1100,100 C1280,40 1620,-60 2200,100 H0 Z"
+      fill="var(--color-paper-book)"
+    />
+  </svg>
+
+  {/* 鉛筆 SVG 右上配置（タブレット以上のみ） */}
+  <img
+    src="/motifs/pencil.svg"
+    alt=""
+    aria-hidden="true"
+    class="hidden md:block absolute top-12 md:top-16 lg:top-20 right-8 w-40 lg:w-56 opacity-[0.08]
+           rotate-[18deg] pointer-events-none"
+    style="color: var(--color-sage-dark);"
+  />
+
+  <div class="relative mx-auto max-w-4xl px-6 md:px-12 text-center">
+    <h2
+      id="solution-heading"
+      class="font-serif font-bold text-sage-dark leading-[1.5]
+             text-[28px] md:text-[40px] lg:text-[48px]"
+    >
+      <span class="mask-up"><span class="text-ink-soft">AI が </span><span class="text-sage-dark">「書く」</span><span class="text-ink-soft"> を肩代わり。</span></span><br />
+      <span class="mask-up" style="transition-delay: 0.15s;">
+        <span class="whitespace-nowrap"><span class="text-ink-soft">先生は </span><span class="text-sage-dark">「教えること」</span><span class="text-ink-soft">に</span></span>
+        <span class="whitespace-nowrap"><span class="text-ink-soft">集中できる。</span></span>
+      </span>
+    </h2>
+
+    <div
+      class="mt-12 md:mt-16 bg-white/80 backdrop-blur-sm rounded-[12px]
+             p-8 md:p-10 shadow-soft border border-line/60 text-left js-fadeInUp"
+    >
+      <p class="font-serif text-[18px] md:text-[20px] leading-[1.9] text-ink">
+        「保護者レポートも月謝管理も、必要なものだけシンプルに使いたい。」<br />
+        ——そんな先生方にちょうどいい、業務支援サービスです。
+      </p>
+      <p class="mt-6 text-[15px] md:text-[16px] leading-[1.9] text-ink-soft">
+        Comiru などの業務管理ソフトと、JukuMate の文章作成 AI 専門レイヤーは、
+        それぞれ別の役割。使い分けが可能です。
+      </p>
+    </div>
+
+    {/* 注釈 2 行（必須） */}
+    <ul
+      class="mt-8 text-[13px] md:text-[14px] leading-[1.85] text-ink-soft space-y-1 text-left
+             max-w-[760px] mx-auto js-fadeInUp"
+      data-stagger="1"
+    >
+      <li>※ JukuMate と他社サービスは、それぞれ独立してご利用いただきます（システム連携・データ連携は行いません）。</li>
+      <li>※ 現在ご契約中の塾管理ソフトの利用規約で、他サービス併用に制限がないか必ずご確認ください。</li>
+    </ul>
+  </div>
+
+  {/* 本の見開き溝 下端（凹みを Features bg-cream-deep に合わせて連続感を出す） */}
+  <BookEdge position="bottom" fill="cream-deep" />
+</section>

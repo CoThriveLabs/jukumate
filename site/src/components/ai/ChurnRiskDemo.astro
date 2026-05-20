@@ -1,0 +1,236 @@
+---
+/**
+ * ChurnRiskDemo — 退塾予兆 AI ミニデモ
+ *
+ * - 完全 API 不使用（架空 3 人の static data、ネットワーク呼び出しゼロ）
+ * - 切替時に 2 段ローディング演出（0.0s → 0.4s → 0.8s 結果表示）
+ * - 切替で count-up を CustomEvent で再発火、bar-grow も再アニメ
+ * - reduced-motion ON ではローディング演出スキップ即時表示
+ */
+import { sampleStudents } from '../../data/sample-students';
+
+const RISK_LABEL = {
+  high: '退塾リスク: 高',
+  mid: '退塾リスク: 中',
+  low: '退塾リスク: 低',
+} as const;
+---
+
+<article
+  class="bg-white rounded-[16px] shadow-panel border border-line/60 p-6 md:p-10 js-fadeInUp relative overflow-hidden"
+  aria-labelledby="churn-demo-heading"
+>
+  {/* T-20-f 装飾: グラフ周辺に dot-grid モチーフをうっすら背景に */}
+  <span
+    aria-hidden="true"
+    class="absolute top-4 right-4 w-32 h-32 opacity-[0.04] pointer-events-none"
+  >
+    <img src="/motifs/dot-grid.svg" alt="" class="w-full h-full" />
+  </span>
+
+  {/* ヘッダー: アイコン + 小ラベル + H3 + 説明 */}
+  <header class="flex items-start gap-4 relative">
+    <span
+      aria-hidden="true"
+      class="inline-flex shrink-0 items-center justify-center w-12 h-12 rounded-full bg-terracotta-pale"
+      style="color: var(--color-terracotta-cta);"
+    >
+      <img src="/motifs/eye-soft.svg" alt="" class="w-6 h-6" />
+    </span>
+    <div>
+      <p class="font-display text-[11px] font-bold tracking-[0.33em] text-terracotta-cta">
+        退塾予兆 AI ミニデモ
+      </p>
+      <h3
+        id="churn-demo-heading"
+        class="font-serif font-bold text-[20px] md:text-[24px] text-ink mt-1"
+      >
+        <span class="whitespace-nowrap">生徒のサインを、</span><span class="whitespace-nowrap">AI が読み解きます。</span>
+      </h3>
+      <p class="text-[14px] md:text-[15px] text-ink-soft mt-2 leading-[1.85]">
+        <span class="whitespace-nowrap">架空の生徒データを3人分</span><span class="whitespace-nowrap">ご用意しました。</span>ボタンを押すと、<span class="whitespace-nowrap">AI が出席率・宿題提出率・成績推移から</span><span class="whitespace-nowrap">退塾リスクをそっと読み解きます。</span>
+      </p>
+    </div>
+  </header>
+
+  {/* 生徒切替タブ */}
+  <div
+    role="tablist"
+    aria-label="サンプル生徒切替"
+    class="mt-8 flex flex-wrap gap-2"
+    data-cr-tabs
+  >
+    {sampleStudents.map((s, i) => (
+      <button
+        type="button"
+        role="tab"
+        data-cr-tab={s.id}
+        aria-selected={i === 0 ? 'true' : 'false'}
+        aria-controls={`cr-panel-${s.id}`}
+        id={`cr-tab-${s.id}`}
+        class={`cr-tab inline-flex items-center gap-2 px-4 py-2.5 rounded-[8px] text-[13px] font-semibold transition-colors border ${
+          i === 0 ? 'cr-tab--active' : 'cr-tab--inactive'
+        }`}
+      >
+        <span>{s.displayName}</span>
+        {/* サンプル明示バッジ: sprout.svg アイコン + 「（サンプル）」テキスト */}
+        <span aria-label="サンプル生徒" class="cr-tab-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium">
+          <img src="/motifs/sprout.svg" alt="" aria-hidden="true" class="w-3 h-3" />
+          （サンプル）
+        </span>
+      </button>
+    ))}
+  </div>
+
+  {/* 結果パネル（生徒ごと） */}
+  {sampleStudents.map((s, i) => (
+    <div
+      role="tabpanel"
+      id={`cr-panel-${s.id}`}
+      aria-labelledby={`cr-tab-${s.id}`}
+      data-cr-panel={s.id}
+      hidden={i !== 0}
+      class="mt-8"
+    >
+      {/* 学年表示 */}
+      <p class="text-[12px] text-ink-soft mb-3">
+        学年: {s.grade}
+      </p>
+
+      {/* ローディングオーバーレイ（2 段文言） */}
+      <div
+        data-cr-loading
+        hidden
+        class="flex items-center gap-3 py-12 text-ink-soft justify-center bg-cream-deep/60 rounded-[12px]"
+      >
+        <span aria-hidden="true" class="ai-loading flex gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-sage"></span>
+          <span class="w-2 h-2 rounded-full bg-sage" style="animation-delay: 0.2s;"></span>
+          <span class="w-2 h-2 rounded-full bg-sage" style="animation-delay: 0.4s;"></span>
+        </span>
+        <span data-cr-loading-text class="text-[13px]">データを読み解いています...</span>
+      </div>
+
+      <div data-cr-result>
+        {/* メトリクス 3 列 */}
+        <div class="grid grid-cols-3 gap-3 md:gap-6">
+          {/* 出席率 */}
+          <div class="bg-cream-deep rounded-[12px] p-4 md:p-6">
+            <p class="text-[11px] md:text-[12px] text-ink-soft tracking-wider uppercase block min-h-[2.8em] leading-[1.4]">
+              出席率（直近1ヶ月）
+            </p>
+            <p class="mt-2 flex items-baseline gap-1">
+              <span
+                class="count-up font-display font-bold text-ink text-[32px] md:text-[44px] leading-none"
+                data-from="0"
+                data-to={String(s.attendance)}
+                data-duration="900"
+                data-suffix="%"
+              >
+                0%
+              </span>
+            </p>
+          </div>
+
+          {/* 宿題提出率 */}
+          <div class="bg-cream-deep rounded-[12px] p-4 md:p-6">
+            <p class="text-[11px] md:text-[12px] text-ink-soft tracking-wider uppercase block min-h-[2.8em] leading-[1.4]">
+              宿題提出率
+            </p>
+            <p class="mt-2 flex items-baseline gap-1">
+              <span
+                class="count-up font-display font-bold text-ink text-[32px] md:text-[44px] leading-none"
+                data-from="0"
+                data-to={String(s.homework)}
+                data-duration="900"
+                data-suffix="%"
+              >
+                0%
+              </span>
+            </p>
+          </div>
+
+          {/* 成績推移（簡易ミニグラフ） */}
+          <div class="bg-cream-deep rounded-[12px] p-4 md:p-6">
+            <p class="text-[11px] md:text-[12px] text-ink-soft tracking-wider uppercase block min-h-[2.8em] leading-[1.4]">
+              成績推移（6ヶ月）
+            </p>
+            <div class="mt-3 flex items-end gap-1 h-[44px] md:h-[60px]">
+              {s.scoreTrend.map((t, idx) => (
+                <span
+                  aria-hidden="true"
+                  class="bar-grow flex-1 rounded-t-[3px] bg-sage"
+                  style={`--bar-height: ${t.value * 0.7}px; transition-delay: ${idx * 0.08}s;`}
+                ></span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* リスク判定 + 理由 */}
+        <div class="mt-6 bg-paper rounded-[12px] p-5 md:p-6 border border-line/60">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span
+              class={`risk-badge risk-badge--${s.risk} inline-flex items-center justify-center px-4 py-1.5 rounded-full font-display text-[13px] font-bold tracking-wider`}
+            >
+              {RISK_LABEL[s.risk]}
+            </span>
+            <span class="text-[12px] text-ink-soft">AI 判定根拠</span>
+          </div>
+
+          <p class="mt-4 text-[14px] md:text-[15px] leading-[1.85] text-ink">
+            {s.reasons.map((r, idx) => (
+              <>
+                {r}
+                {idx < s.reasons.length - 1 && <br />}
+              </>
+            ))}
+          </p>
+        </div>
+      </div>
+    </div>
+  ))}
+
+  {/* CTA */}
+  <div class="mt-8 flex flex-wrap gap-3 items-center">
+    <button
+      type="button"
+      data-form-trigger
+      class="inline-flex items-center gap-2 bg-ink hover:bg-ink-darker text-cream text-[13px] font-bold tracking-[0.04em] px-6 py-3 rounded-[4px] transition-colors cursor-pointer border-0"
+      aria-label="実際の生徒データで試したい（予約フォームを開く）"
+    >
+      実際の生徒データで試したい
+    </button>
+    <span class="text-[12px] text-ink-soft">※ 本デモは架空データです</span>
+  </div>
+</article>
+
+<style>
+  /* タブ切替の active/inactive を CSS class に集約（useChurnRiskDemo は class 1 つを toggle するだけ） */
+  .cr-tab--active {
+    background-color: var(--color-ink);
+    color: var(--color-cream);
+    border-color: var(--color-ink);
+  }
+  .cr-tab--inactive {
+    background-color: #fff;
+    color: var(--color-ink-soft);
+    border-color: var(--color-line);
+  }
+  .cr-tab--inactive:hover {
+    border-color: var(--color-ink);
+  }
+  /* タブ内サンプルバッジは tab の active 状態に応じて色を切り替え */
+  .cr-tab--active .cr-tab-badge {
+    background-color: rgba(250, 248, 243, 0.2);
+    color: rgba(250, 248, 243, 0.9);
+  }
+  .cr-tab--inactive .cr-tab-badge {
+    background-color: var(--color-cream-deep);
+    color: var(--color-ink-soft);
+  }
+</style>
+
+<script>
+  import '../../scripts/useChurnRiskDemo';
+</script>

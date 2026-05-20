@@ -1,0 +1,121 @@
+---
+/**
+ * TurnstileWidget — Cloudflare Turnstile クライアントウィジェット
+ *
+ * - 公式 JS (challenges.cloudflare.com/turnstile/v0/api.js) を非同期で 1 回だけロード
+ * - 取得トークンは `data-callback` で指定したグローバル関数に渡される
+ * - siteKey === 'MOCKED_FOR_LOCAL_TESTING' の場合は実 JS をロードせず、
+ *   ダミートークン `MOCKED_TOKEN_FOR_LOCAL_DEV` を即座にコールバック発火する
+ *   （ローカル開発でも UI 動線確認できるよう、サーバー側 verifyTurnstileToken も同トークンを通過させる）
+ * - サーバー側検証は GAS Code.gs の verifyTurnstileToken() を参照（サーバー統合時に doPost から呼ぶ）
+ *
+ * Props:
+ *   - siteKey: string                                   Cloudflare で発行する公開キー
+ *   - theme?: 'light' | 'dark' | 'auto'                  デフォルト 'auto'
+ *   - size?: 'normal' | 'compact' | 'invisible'          デフォルト 'normal'
+ *   - callbackName?: string                              トークン取得時のグローバルコールバック関数名（デフォルト 'onTurnstileSuccess'）
+ */
+
+interface Props {
+  siteKey: string;
+  theme?: 'light' | 'dark' | 'auto';
+  size?: 'normal' | 'compact' | 'invisible';
+  callbackName?: string;
+}
+
+const {
+  siteKey,
+  theme = 'auto',
+  size = 'normal',
+  callbackName = 'onTurnstileSuccess',
+} = Astro.props;
+
+const isMock = siteKey === 'MOCKED_FOR_LOCAL_TESTING';
+---
+
+{/*
+  実モード: Cloudflare の公式 JS をロード。`is:inline` で複数挿入されても
+  ブラウザは同一 src の `<script async>` を 1 回しか実行しないため重複ロード問題なし。
+  さらに `id="cf-turnstile-script"` を付けて視認性も担保。
+*/}
+{!isMock && (
+  <script
+    is:inline
+    async
+    defer
+    id="cf-turnstile-script"
+    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+  ></script>
+)}
+
+<div
+  class="turnstile-widget"
+  data-turnstile-root
+  data-turnstile-mock={isMock ? 'true' : 'false'}
+  data-turnstile-callback={callbackName}
+  aria-label="ボット判定（自動）"
+>
+  {!isMock && (
+    <div
+      class="cf-turnstile"
+      data-sitekey={siteKey}
+      data-callback={callbackName}
+      data-theme={theme}
+      data-size={size}
+    ></div>
+  )}
+  {isMock && (
+    <p class="turnstile-widget__mock-note" data-turnstile-mock-note>
+      [DEV] Turnstile mocked — dummy token will be emitted automatically.
+    </p>
+  )}
+</div>
+
+{/*
+  モックモード: 公式 JS をロードせず、マウント直後に擬似トークンを
+  コールバックへ流す。React 等の hydration には頼らない素の inline script で十分。
+*/}
+{isMock && (
+  <script is:inline define:vars={{ callbackName }}>
+    (function () {
+      var TOKEN = 'MOCKED_TOKEN_FOR_LOCAL_DEV';
+      // 既に同名コールバックが定義されていればそれを呼ぶ、なければ後付け定義 → 後から呼んでもらえるよう保持
+      function fire() {
+        var fn = /** @type {any} */ (window)[callbackName];
+        if (typeof fn === 'function') {
+          try {
+            fn(TOKEN);
+          } catch (err) {
+            console.error('[TurnstileWidget mock] callback threw:', err);
+          }
+        }
+      }
+      // window 経由でテストからも参照できるよう公開
+      /** @type {any} */ (window).__TURNSTILE_MOCK_TOKEN__ = TOKEN;
+      // 既に登録されていればすぐ、なければ DOMContentLoaded 後にも 1 度試す
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fire, { once: true });
+      } else {
+        // 同期実行だと親側の onTurnstileSuccess 定義より先に走る可能性があるため次タスクへ
+        setTimeout(fire, 0);
+      }
+    })();
+  </script>
+)}
+
+<style>
+  .turnstile-widget {
+    display: flex;
+    justify-content: center;
+    min-height: 65px;
+  }
+  .turnstile-widget__mock-note {
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border: 1px dashed #999;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: #666;
+    background: rgba(0, 0, 0, 0.02);
+  }
+</style>

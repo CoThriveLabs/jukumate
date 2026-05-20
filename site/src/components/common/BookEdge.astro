@@ -1,0 +1,49 @@
+---
+/**
+ * BookEdge — 本の見開き溝風 装飾エッジ（上/下端）
+ *
+ * Props:
+ *  - position : 'top' | 'bottom'  — セクションのどちら端に配置するか
+ *  - fill     : string            — CSS カスタムプロパティ名（例: 'cream-deeper'）
+ *                                    => 内部で var(--color-{fill}) として解決
+ *
+ * 形状:
+ *  - viewBox 2200×100 を preserveAspectRatio="none" で横幅伸縮
+ *  - 上端は中央 V 字に下凸 + 左右弧で本の溝
+ *  - 下端は上端を 180° 反転した対称形
+ *
+ * a11y: 装飾のため aria-hidden / pointer-events-none / focusable=false
+ */
+export interface Props {
+  position: 'top' | 'bottom';
+  fill: string;
+}
+
+const { position, fill } = Astro.props;
+
+// SVG fill は currentColor。親 div に style で CSS var を流し込む。
+// Tailwind v4 の dynamic class 問題を回避するため style 属性で色指定。
+const positionClass = position === 'top' ? 'top-0' : 'bottom-0';
+const colorStyle = `color: var(--color-${fill});`;
+const pathD =
+  position === 'top'
+    ? 'M0,0 V100 C580,-60 920,40 1100,100 C1280,40 1620,-60 2200,100 V0 Z'
+    : 'M0,100 H1100 C920,40 580,-60 0,100 Z M2200,100 H1100 C1280,40 1620,-60 2200,100 Z';
+---
+
+<div
+  class={`absolute left-0 right-0 w-full h-8 md:h-12 lg:h-16 ${positionClass} pointer-events-none z-[2]`}
+  style={colorStyle}
+  aria-hidden="true"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 2200 100"
+    preserveAspectRatio="none"
+    class="block w-full h-full"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <path d={pathD} fill="currentColor" />
+  </svg>
+</div>

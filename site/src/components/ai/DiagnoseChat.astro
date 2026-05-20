@@ -1,0 +1,125 @@
+---
+/**
+ * DiagnoseChat — AI 診断チャット
+ *
+ * - WORKER_URL 必須（未設定時はエラー表示）
+ * - 統一エラー文（UNIFIED_ERROR_MESSAGE）を採用
+ * - 文字数カウント / 5 ターン上限 / 完了 CTA / a11y（role=log, aria-live=polite）
+ */
+---
+
+<article
+  class="bg-white rounded-[16px] shadow-panel border border-line/60 p-6 md:p-10 js-fadeInUp"
+  aria-labelledby="diagnose-chat-heading"
+>
+  {/* ヘッダー */}
+  <header class="flex items-start gap-4">
+    <span
+      aria-hidden="true"
+      class="inline-flex shrink-0 items-center justify-center w-12 h-12 rounded-full"
+      style="background-color: color-mix(in srgb, var(--color-sage) 10%, transparent); color: var(--color-sage);"
+    >
+      <img src="/motifs/lightbulb-leaf.svg" alt="" class="w-6 h-6" />
+    </span>
+    <div>
+      <p class="font-display text-[11px] font-bold tracking-[0.33em] text-terracotta-cta">
+        AI 診断チャット
+      </p>
+      <h3
+        id="diagnose-chat-heading"
+        class="font-serif font-bold text-[20px] md:text-[24px] text-ink mt-1"
+      >
+        <span class="whitespace-nowrap">あなたの塾に合う使い方を、</span><span class="whitespace-nowrap">AI と探しましょう。</span>
+      </h3>
+      <p class="text-[14px] md:text-[15px] text-ink-soft mt-2 leading-[1.85]">
+        <span class="whitespace-nowrap">「保護者連絡が大変」</span><span class="whitespace-nowrap">「退塾を減らしたい」</span>など、<span class="whitespace-nowrap">塾のお悩みを 1〜2 文で</span><span class="whitespace-nowrap">お聞かせください。</span>AI が JukuMate の中から、<span class="whitespace-nowrap">相性の良い使い方を</span><span class="whitespace-nowrap">ご提案します。</span>
+        <span class="block mt-1 text-[12px]">最大5ターンまで / 1メッセージ500文字まで</span>
+      </p>
+    </div>
+  </header>
+
+  {/* チャット履歴エリア */}
+  <div
+    data-dc-log
+    role="log"
+    aria-live="polite"
+    aria-label="チャット履歴"
+    class="mt-8 max-h-[420px] overflow-y-auto bg-cream-deep/40 rounded-[12px] p-4 md:p-6 flex flex-col gap-4"
+  >
+    {/* 初期 bot メッセージ */}
+    <div class="chat-bubble chat-bubble--bot flex gap-3">
+      <span
+        aria-hidden="true"
+        class="shrink-0 inline-flex items-center justify-center w-8 h-8 rounded-full text-cream font-display text-[12px] font-bold"
+        style="background-color: var(--color-sage);"
+      >
+        JM
+      </span>
+      <p class="bg-white rounded-[12px] px-4 py-3 text-[14px] md:text-[15px] leading-[1.85] text-ink max-w-[80%]">
+        こんにちは。JukuMate の AI コンシェルジュです。<br />
+        塾運営でお困りのことを、なんでもお聞かせください。
+      </p>
+    </div>
+  </div>
+
+  {/* ターンカウンタ */}
+  <p data-dc-turn class="mt-3 text-[12px] text-ink-soft text-right">
+    残り5ターン / 5
+  </p>
+
+  {/* 入力フォーム */}
+  <form data-dc-form class="mt-4 flex flex-col gap-3">
+    <label for="dc-input" class="sr-only">塾の課題を入力</label>
+    <textarea
+      id="dc-input"
+      data-dc-input
+      maxlength="500"
+      rows="3"
+      placeholder="例: 月次の保護者レポートを書く時間がない
+※ 生徒名・保護者名など個人を特定できる情報は入力しないでください"
+      class="w-full bg-paper border border-line rounded-[8px] p-4 text-[16px] md:text-[15px] leading-[1.85] text-ink resize-none focus:outline-none focus:ring-2 focus:ring-sage placeholder:text-ink-soft/70"
+    ></textarea>
+
+    <div class="flex items-center justify-between gap-3">
+      <span data-dc-counter class="text-[12px] text-ink-soft">0 / 500文字</span>
+      <button
+        data-dc-submit
+        type="submit"
+        class="inline-flex items-center gap-2 bg-ink hover:bg-ink-darker text-cream disabled:bg-line disabled:text-ink-soft disabled:cursor-not-allowed text-[14px] font-bold tracking-[0.04em] px-6 py-3 rounded-[4px] transition-colors"
+      >
+        送信
+      </button>
+    </div>
+  </form>
+
+  {/* エラー表示エリア */}
+  <div
+    data-dc-error
+    hidden
+    role="alert"
+    class="mt-4 bg-terracotta-pale border border-terracotta-soft rounded-[8px] p-4 text-[14px] text-terracotta-cta-dark leading-[1.85]"
+  ></div>
+
+  {/* 完了時 CTA */}
+  <div
+    data-dc-cta
+    hidden
+    class="mt-6 bg-paper rounded-[12px] p-5 md:p-6 border border-line/60"
+  >
+    <p class="font-serif text-[16px] md:text-[18px] text-ink leading-[1.85]">
+      この使い方について、30分で詳しくお話ししませんか
+    </p>
+    <button
+      type="button"
+      data-form-trigger
+      class="mt-4 inline-flex items-center gap-2 bg-terracotta-cta hover:bg-terracotta-cta-dark text-cream text-[14px] font-bold tracking-[0.04em] px-6 py-3 rounded-[4px] transition-colors cursor-pointer border-0"
+      aria-label="30分・無料相談を予約する（予約フォームを開く）"
+    >
+      30分・無料相談を予約する →
+    </button>
+  </div>
+</article>
+
+<script>
+  import '../../scripts/useDiagnoseChat';
+</script>

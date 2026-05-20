@@ -1,0 +1,63 @@
+---
+/**
+ * AIExperience — セクション 5: AI 体験
+ *
+ * 構造: H2 → リード文 → ParentReportDemo → ChurnRiskDemo → DiagnoseChat → 架空ポートフォリオ注釈
+ */
+import ChurnRiskDemo from '../ai/ChurnRiskDemo.astro';
+import DiagnoseChat from '../ai/DiagnoseChat.astro';
+import ParentReportDemo from '../ai/ParentReportDemo.astro';
+---
+
+<section
+  id="ai-experience"
+  aria-labelledby="ai-experience-heading"
+  class="bg-cream relative overflow-hidden py-24 md:py-32"
+>
+  {/* 紙グレインうっすら（既存 .bg-grain 流用、強度 0.04） */}
+  <div
+    aria-hidden="true"
+    class="absolute inset-0 opacity-[0.04] pointer-events-none bg-grain"
+  ></div>
+
+  <div class="relative mx-auto max-w-6xl px-6 md:px-12">
+    <h2
+      id="ai-experience-heading"
+      class="font-serif font-bold text-ink leading-[1.4] text-[28px] md:text-[36px] lg:text-[40px] max-w-[820px]"
+    >
+      <span class="mask-up"><span>AI の<span class="text-sage-dark">「気づき」</span>を、</span></span><br class="md:hidden" />
+      <span class="mask-up" style="transition-delay: 0.15s;"><span>このページで体験。</span></span>
+    </h2>
+
+    <p
+      class="mt-6 text-[15px] md:text-[16px] leading-[1.9] text-ink-soft max-w-[680px] js-fadeInUp"
+      data-stagger="1"
+    >
+      <span class="whitespace-nowrap">日々の「ちょっとした変化」を、</span><span class="whitespace-nowrap">AI がそっと拾い上げます。</span>
+      <span class="whitespace-nowrap">保護者レポート下書き</span>・<span class="whitespace-nowrap">退塾予兆ミニデモ</span>・<span class="whitespace-nowrap">AI 診断チャット</span>の 3 つで、<span class="whitespace-nowrap">JukuMate の働き方を</span><span class="whitespace-nowrap">実際に触れて確かめてください。</span>
+    </p>
+
+    {/* 5a: 保護者レポート下書き AI（Phase B 案 B、ファースト体験） */}
+    <div class="mt-16 md:mt-20">
+      <ParentReportDemo />
+    </div>
+
+    {/* 5b: 退塾予兆 AI ミニデモ */}
+    <div class="mt-20 md:mt-24">
+      <ChurnRiskDemo />
+    </div>
+
+    {/* 5c: AI 診断チャット */}
+    <div class="mt-20 md:mt-24">
+      <DiagnoseChat />
+    </div>
+
+    {/* 架空ポートフォリオ注釈 */}
+    <p
+      class="mt-12 text-[13px] md:text-[14px] leading-[1.85] text-ink-soft max-w-[760px] js-fadeInUp"
+    >
+      ※ サンプル生徒データはすべて架空です。実在の生徒・保護者を表すものではありません。<br />
+      ※ AI 診断チャット・保護者レポート下書きの応答は Anthropic Claude（Haiku 4.5）により生成され、JukuMate 機能のマッチング提案・運用イメージのご提示を目的としています。本サービスはベータ版です。
+    </p>
+  </div>
+</section>

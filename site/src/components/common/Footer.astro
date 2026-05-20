@@ -1,0 +1,52 @@
+---
+/**
+ * Footer — 共通フッター
+ *
+ * 構造（1 段シンプル構成 + ポートフォリオ注釈ブロック）:
+ *   - 上段左端: JukuMate © 2026 Co-Thrive Labs
+ *   - 上段右端: プライバシーポリシー / 利用規約 / 特定商取引法に基づく表記 / セキュリティポリシー（必須 4 リンク）
+ *   - 下段: Co-Thrive Labs ポートフォリオ作品注釈（誘引規制回避目的）
+ */
+const legalLinks = [
+  { href: '/legal/privacy', label: 'プライバシーポリシー' },
+  { href: '/legal/terms', label: '利用規約' },
+  { href: '/legal/tokushoho', label: '特定商取引法に基づく表記' },
+  { href: '/legal/security', label: 'セキュリティポリシー' },
+];
+---
+
+<footer class="bg-cream-deeper border-t border-line/60 py-8 md:py-10 px-6 md:px-12">
+  {/* 上段: 著作権 + Legal リンク */}
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center md:justify-between gap-4 md:gap-0">
+    <div class="text-center md:text-left">
+      <p class="font-serif text-[13px] md:text-[14px] text-ink-soft/90 leading-[1.7]">
+        先生の「教える時間」を、そっと守るために。
+      </p>
+      <p class="mt-1.5 text-[13px] md:text-[14px] text-ink-soft font-medium">
+        <span class="text-ink font-bold">JukuMate</span>
+        <span class="opacity-70 ml-2">© 2026 Co-Thrive Labs</span>
+      </p>
+    </div>
+
+    <nav aria-label="Footer Legal">
+      <ul
+        class="flex flex-wrap items-center justify-center md:justify-end gap-x-4 md:gap-x-5 gap-y-2 text-[13px] md:text-[14px]"
+        role="list"
+      >
+        {legalLinks.map((link) => (
+          <li>
+            <a href={link.href} class="text-ink hover:text-sage-dark transition-colors">
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+
+  {/* 下段: ポートフォリオ作品注釈（誘引規制回避目的） */}
+  <p class="max-w-6xl mx-auto mt-6 md:mt-8 pt-4 border-t border-line/30 text-[12px] md:text-[13px] text-ink-soft/80 leading-[1.7] text-center md:text-left">
+    ※ 本サイトは Co-Thrive Labs のポートフォリオ作品です。
+    記載のサービス・価格・募集枠は実運用ではなくデモ表示を含みます。
+  </p>
+</footer>

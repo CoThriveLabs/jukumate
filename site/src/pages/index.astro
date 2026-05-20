@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/sections/Hero.astro';
+import Problems from '../components/sections/Problems.astro';
+import Solution from '../components/sections/Solution.astro';
+import Features from '../components/sections/Features.astro';
+import AIExperience from '../components/sections/AIExperience.astro';
+import Pricing from '../components/sections/Pricing.astro';
+import FAQ, { faqs } from '../components/sections/FAQ.astro';
+import Beta from '../components/sections/Beta.astro';
+---
+
+<BaseLayout
+  title="JukuMate"
+  description="先生は、教えることに集中していい。"
+  faqs={faqs}
+>
+  <main>
+    <Hero />
+    <Problems />
+    <Solution />
+    <Features />
+    <AIExperience />
+    <Beta />
+    <Pricing />
+    <FAQ />
+  </main>
+</BaseLayout>

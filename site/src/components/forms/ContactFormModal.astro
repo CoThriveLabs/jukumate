@@ -1,0 +1,309 @@
+---
+/**
+ * ContactFormModal — 動的予約フォーム本体
+ *
+ * - role="dialog" の div + hidden 属性切替方式（既存 MobileMenu と同パターン）
+ * - 起動トリガ: <button data-form-trigger> クリック
+ * - ESC キー / × ボタン / 背景クリックで close（送信中は無効化）
+ * - flatpickr / fetch / 状態切替は useContactForm.ts 側で hydrate
+ * - Turnstile は送信ボタン直前に配置。siteKey 未設定時は MOCKED_FOR_LOCAL_TESTING で
+ *   ダミートークン経路に自動切替（useContactForm から onTurnstileSuccess で受領）
+ */
+import TurnstileWidget from './TurnstileWidget.astro';
+
+const turnstileSiteKey =
+  (import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined) ??
+  'MOCKED_FOR_LOCAL_TESTING';
+---
+
+{/* モーダル: 初期 hidden、JS で open 制御。aria-modal は open 時のみ true（hidden 中は付けない） */}
+<div
+  id="contact-modal"
+  class="contact-modal"
+  role="dialog"
+  aria-labelledby="contact-modal-title"
+  aria-describedby="contact-modal-lead"
+  hidden
+>
+  <div
+    class="contact-modal__dialog"
+    data-contact-modal-dialog
+    role="document"
+  >
+    <button
+      type="button"
+      class="contact-modal__close"
+      data-contact-modal-close
+      aria-label="フォームを閉じる"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <h2 id="contact-modal-title" class="contact-modal__title">
+      30分・無料相談のご予約
+    </h2>
+    <p id="contact-modal-lead" class="contact-modal__lead">
+      下記フォームをご記入の上ご送信ください。<strong>2営業日以内</strong>に こすらぼ（Co-Thrive Labs） JukuMate担当よりカレンダー招待をお送りします。
+    </p>
+
+    <form
+      class="cf-form"
+      data-contact-form
+      data-cf-state="idle"
+      novalidate
+    >
+      {/* ハニーポット: 視認不可・Tab 順から外す（spammer 自動入力のみが値を入れる） */}
+      <div class="cf-honeypot" aria-hidden="true">
+        <label for="cf-website">ウェブサイト（記入不要）</label>
+        <input
+          id="cf-website"
+          name="website"
+          type="text"
+          tabindex="-1"
+          autocomplete="off"
+        />
+      </div>
+
+      {/* 通常フィールド群（success 時に display:none） */}
+      <div class="cf-fields">
+        {/* 1. 塾名 */}
+        <div class="cf-field">
+          <label for="cf-juku-name" class="cf-label">
+            塾名<span class="cf-required" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="cf-juku-name"
+            name="juku_name"
+            type="text"
+            class="cf-input"
+            maxlength="80"
+            required
+            aria-required="true"
+            aria-describedby="cf-juku-name-error"
+            autocomplete="organization"
+          />
+          <p id="cf-juku-name-error" class="cf-error-message" data-cf-error-for="juku_name"></p>
+        </div>
+
+        {/* 2. ご担当者名 */}
+        <div class="cf-field">
+          <label for="cf-contact-name" class="cf-label">
+            ご担当者名<span class="cf-required" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="cf-contact-name"
+            name="contact_name"
+            type="text"
+            class="cf-input"
+            maxlength="40"
+            required
+            aria-required="true"
+            aria-describedby="cf-contact-name-error"
+            autocomplete="name"
+          />
+          <p id="cf-contact-name-error" class="cf-error-message" data-cf-error-for="contact_name"></p>
+        </div>
+
+        {/* 3. メールアドレス */}
+        <div class="cf-field">
+          <label for="cf-email" class="cf-label">
+            メールアドレス<span class="cf-required" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="cf-email"
+            name="email"
+            type="email"
+            class="cf-input"
+            maxlength="200"
+            required
+            aria-required="true"
+            aria-describedby="cf-email-error"
+            autocomplete="email"
+            inputmode="email"
+          />
+          <p id="cf-email-error" class="cf-error-message" data-cf-error-for="email"></p>
+        </div>
+
+        {/* 4. 生徒数 */}
+        <div class="cf-field">
+          <label for="cf-student-count" class="cf-label">
+            生徒数（おおよそ）<span class="cf-required" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="cf-student-count"
+            name="student_count"
+            class="cf-select"
+            required
+            aria-required="true"
+            aria-describedby="cf-student-count-error"
+          >
+            <option value="">選択してください</option>
+            <option value="〜30">〜30名</option>
+            <option value="31-80">31〜80名</option>
+            <option value="81-150">81〜150名</option>
+            <option value="151-300">151〜300名</option>
+            <option value="301〜">301名以上</option>
+          </select>
+          <p id="cf-student-count-error" class="cf-error-message" data-cf-error-for="student_count"></p>
+        </div>
+
+        {/* 5. 対象学年帯（自動返信メールの分岐キー） */}
+        <div class="cf-field">
+          <label for="cf-target" class="cf-label">
+            対象学年帯<span class="cf-required" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="cf-target"
+            name="target"
+            class="cf-select"
+            required
+            aria-required="true"
+            aria-describedby="cf-target-error"
+          >
+            <option value="">選択してください</option>
+            <option value="chuju">中学受験</option>
+            <option value="koju">高校受験</option>
+            <option value="daiju">大学受験</option>
+            <option value="sogo">総合・その他</option>
+          </select>
+          <p id="cf-target-error" class="cf-error-message" data-cf-error-for="target"></p>
+        </div>
+
+        {/* 6. 既存の塾管理ソフト（任意） */}
+        <div class="cf-field">
+          <label for="cf-existing-saas" class="cf-label">
+            既存の塾管理ソフト（任意）
+          </label>
+          <input
+            id="cf-existing-saas"
+            name="existing_saas"
+            type="text"
+            class="cf-input"
+            maxlength="200"
+            placeholder="特になし / Comiru / その他"
+            aria-describedby="cf-existing-saas-error"
+          />
+          <p id="cf-existing-saas-error" class="cf-error-message" data-cf-error-for="existing_saas"></p>
+        </div>
+
+        {/* 7. 希望日時候補（flatpickr multiple、上限 3、平日のみ、翌々日以降） */}
+        <div class="cf-field">
+          <label for="cf-candidates" class="cf-label">
+            希望日時 候補（1〜3件）<span class="cf-required" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="cf-candidates"
+            name="candidates_input"
+            type="text"
+            class="cf-input"
+            readonly
+            placeholder="カレンダーから 1〜3日選択"
+            aria-required="true"
+            aria-label="希望日時候補（最大3件、平日のみ、翌々日以降）"
+            aria-describedby="cf-candidates-help cf-candidates-error"
+          />
+          <p id="cf-candidates-help" class="cf-help">
+            平日のみ・翌々日以降・最大3候補までご選択いただけます。
+          </p>
+          <div class="cf-candidates-summary" data-cf-candidates-summary aria-live="polite"></div>
+          <p id="cf-candidates-error" class="cf-error-message" data-cf-error-for="candidates"></p>
+        </div>
+
+        {/* 8. 希望時間帯（共通） */}
+        <fieldset class="cf-field">
+          <legend class="cf-label">
+            希望時間帯<span class="cf-required" aria-hidden="true">*</span>
+          </legend>
+          <div class="cf-radio-group" role="radiogroup" aria-required="true" aria-describedby="cf-time-slot-error">
+            <label class="cf-radio-option">
+              <input type="radio" name="time_slot" value="morning" required />
+              <span>午前（9:00 - 12:00）</span>
+            </label>
+            <label class="cf-radio-option">
+              <input type="radio" name="time_slot" value="afternoon" />
+              <span>午後（13:00 - 17:00）</span>
+            </label>
+            <label class="cf-radio-option">
+              <input type="radio" name="time_slot" value="evening" />
+              <span>夜間（18:00 - 21:00）</span>
+            </label>
+          </div>
+          <p id="cf-time-slot-error" class="cf-error-message" data-cf-error-for="time_slot"></p>
+        </fieldset>
+
+        {/* 9. 個人情報の取扱方針同意 */}
+        <div class="cf-consent">
+          <input
+            id="cf-consent"
+            name="consent"
+            type="checkbox"
+            required
+            aria-required="true"
+            aria-describedby="cf-consent-error"
+          />
+          <label for="cf-consent">
+            <strong>個人情報の取扱方針に同意します</strong>
+            <span class="cf-help" style="display:block;">
+              取得項目は塾運営の業務連絡に必要な最小限のみ。AI 学習用途には使用しません。
+              生徒個人を特定する情報は取得しません。
+            </span>
+          </label>
+        </div>
+        <p id="cf-consent-error" class="cf-error-message" data-cf-error-for="consent"></p>
+
+        {/* エラーバナー（送信エラー時のみ表示） */}
+        <div class="cf-error-banner" role="alert" data-cf-error-banner>
+          送信に失敗しました。時間をおいて再度お試しください。
+        </div>
+      </div>
+
+      {/* Turnstile: 送信ボタン直前に配置。トークンは window.onTurnstileSuccess 経由で useContactForm が受領 */}
+      <div class="cf-turnstile-wrapper" data-cf-turnstile-slot>
+        <TurnstileWidget
+          siteKey={turnstileSiteKey}
+          theme="auto"
+          size="normal"
+          callbackName="onTurnstileSuccess"
+        />
+      </div>
+
+      {/* 送信 / キャンセル */}
+      <div class="cf-actions">
+        <button
+          type="button"
+          class="cf-btn cf-btn--secondary"
+          data-contact-modal-close
+        >
+          キャンセル
+        </button>
+        <button
+          type="submit"
+          class="cf-btn cf-btn--primary"
+          data-contact-submit
+        >
+          <span class="cf-btn-label">送信する</span>
+        </button>
+      </div>
+
+      {/* 完了画面（success 時のみ表示） */}
+      <div class="cf-success" role="status" tabindex="-1" data-cf-success>
+        <h3 class="cf-success__title">お申込みありがとうございます。</h3>
+        <p class="cf-success__body">
+          2 営業日以内に、こすらぼ（Co-Thrive Labs） JukuMate担当より<br />
+          カレンダー招待をお送りします。<br />
+          ご記入のメールアドレス宛にも、ご確認のメールをお送りしました。<br />
+          （届かない場合は迷惑メールフォルダもご確認ください）
+        </p>
+        <button
+          type="button"
+          class="cf-btn cf-btn--secondary"
+          data-contact-modal-close
+        >
+          閉じる
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

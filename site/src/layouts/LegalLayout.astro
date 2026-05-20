@@ -1,0 +1,74 @@
+---
+// site/src/layouts/LegalLayout.astro
+// 4 つの Legal ページ共通レイアウト。最下部に PF 注記 1 行を必ず描画する。
+import BaseLayout from './BaseLayout.astro';
+
+export interface Props {
+  title: string;
+  updatedAt: string; // 例: '2026-05-21'
+}
+const { title, updatedAt } = Astro.props;
+---
+
+<BaseLayout title={`${title} | JukuMate`} description={title}>
+  <main class="bg-cream-deep py-16 md:py-24 px-6 md:px-12">
+    <article class="max-w-3xl mx-auto bg-white rounded-[12px] shadow-soft border border-line/60 p-8 md:p-12">
+      <header class="border-b border-line/60 pb-6 mb-8">
+        <h1 class="font-serif font-bold text-[28px] md:text-[36px] text-sage-dark leading-[1.4]">
+          {title}
+        </h1>
+        <p class="mt-3 text-[13px] md:text-[14px] text-ink-soft">
+          最終更新日: {updatedAt}
+        </p>
+      </header>
+
+      <div class="legal-prose text-[15px] md:text-[16px] leading-[1.95] text-ink">
+        <slot />
+      </div>
+
+      <footer class="mt-12 pt-6 border-t border-line/40 text-[12px] md:text-[13px] text-ink-soft leading-[1.7]">
+        ※ 本サイトは Co-Thrive Labs のポートフォリオ作品です。記載のサービス・価格・募集枠は実運用ではなくデモ表示を含みます。
+      </footer>
+    </article>
+  </main>
+</BaseLayout>
+
+<style>
+  /* Legal 系の素朴な見出し体裁 */
+  .legal-prose :global(h2) {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    color: var(--color-sage-dark);
+    font-size: 1.25em;
+    margin: 2.2em 0 0.8em;
+    padding-bottom: 0.3em;
+    border-bottom: 2px solid color-mix(in srgb, var(--color-sage) 30%, transparent);
+  }
+  .legal-prose :global(h3) {
+    font-weight: 700;
+    color: var(--color-ink);
+    margin: 1.6em 0 0.6em;
+    font-size: 1.05em;
+  }
+  .legal-prose :global(p) { margin: 0.6em 0; }
+  .legal-prose :global(ul) { margin: 0.6em 0; padding-left: 1.5em; list-style: disc; }
+  .legal-prose :global(li) { margin: 0.25em 0; }
+  .legal-prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0;
+    font-size: 0.95em;
+  }
+  .legal-prose :global(th),
+  .legal-prose :global(td) {
+    border: 1px solid var(--color-line);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .legal-prose :global(th) {
+    background: color-mix(in srgb, var(--color-sage) 12%, transparent);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+</style>

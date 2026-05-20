@@ -1,0 +1,46 @@
+name = "jukumate-ai-chat"
+main = "src/index.ts"
+compatibility_date = "2026-05-01"
+compatibility_flags = ["nodejs_compat"]  # SDK 0.97 が node:fs/promises 等を要求するため有効化（設計書 §0-2 J からの逸脱、DEVIATIONS.md 参照）
+
+# ─── 環境変数（公開可、コードに同梱されてよい値）────────────
+[vars]
+ANTHROPIC_MODEL = "claude-haiku-4-5"
+MAX_TURNS = "5"
+MONTHLY_LIMIT = "5000"
+# T-05 / T-19: 保護者レポート用 月間上限（診断とは別枠で分配）
+MONTHLY_LIMIT_PARENT_REPORT = "2000"
+# ALLOWED_ORIGINS は src/index.ts 内に配列で記述（コード可読性優先）
+
+# ─── KV ネームスペース（月間カウンタ用）──────────────────
+[[kv_namespaces]]
+binding = "MONTHLY_COUNTER"
+id = "ebd12620931f4c13a782e7e96e085d18"           # wrangler kv namespace create で発行（2026-05-19）
+preview_id = "8d6c5fc1097840fcb4440eebc3b58e6a"   # wrangler kv namespace create --preview（2026-05-19）
+
+# T-05 / T-19: 保護者レポート用 月間カウンタ
+# NOTE: デプロイ前に下記コマンドで namespace 発行して id / preview_id を埋めること
+#   pnpm wrangler kv namespace create MONTHLY_COUNTER_PARENT_REPORT
+#   pnpm wrangler kv namespace create MONTHLY_COUNTER_PARENT_REPORT --preview
+[[kv_namespaces]]
+binding = "MONTHLY_COUNTER_PARENT_REPORT"
+id = "<PLACEHOLDER_PRODUCTION_ID>"
+preview_id = "<PLACEHOLDER_PREVIEW_ID>"
+
+# ─── Rate Limiting binding（IP 単位）─────────────────
+# 注: 2026-05 時点で Rate Limiting binding は GA、wrangler.toml の正式スキーマは
+# Cloudflare docs を最新確認すること（[[unsafe.bindings]] か [[ratelimits]] かは時期により変動）
+[[unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 20, period = 60 }
+
+# ─── ログ・観測 ──────────────────────────────────────
+[observability]
+enabled = true                     # Workers Analytics の詳細メトリクス有効化
+head_sampling_rate = 1.0           # ポートフォリオ規模なので 100% サンプリング
+
+# ─── デプロイメタ ──────────────────────────────────
+[placement]
+mode = "smart"                      # 近接リージョン自動最適化（無料）

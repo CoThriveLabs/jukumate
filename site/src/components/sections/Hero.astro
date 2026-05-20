@@ -1,0 +1,254 @@
+---
+/**
+ * Hero セクション
+ *
+ * レスポンシブ:
+ * - md (≥768px): 左カラム + 右パネル群の 2 カラム
+ * - <768px:      1 カラム縦積み（左テキスト → 右パネル群）
+ */
+
+// sage blob 3 個（左カラム背景に浮遊）。floatingVariant が animation delay 制御。
+const blobs = [
+  {
+    variant: 'a',
+    style: 'top: 8%; left: -40px; width: 240px; height: 220px;',
+    viewBox: '0 0 240 220',
+    d: 'M132.3 8.4c30.5 4.6 58.4 23.8 75.1 49.3 16.7 25.5 22.2 57.4 13.5 84.6-8.7 27.2-31.6 49.7-58.9 60.5-27.3 10.7-58.9 9.8-83.6-3.1-24.6-12.9-42.3-37.7-50.2-65.3C20.3 106.8 22.1 76 36.7 52.4 51.3 28.7 78.6 12.4 105.4 8.6c8.9-1.3 17.9-1.4 26.9-0.2z',
+  },
+  {
+    variant: 'b',
+    style: 'bottom: 12%; left: 18%; width: 180px; height: 200px;',
+    viewBox: '0 0 180 200',
+    d: 'M95.2 5.6c22.4 1.8 44.5 13.2 58.8 30.7 14.3 17.5 20.7 41.2 17.4 63.4-3.3 22.2-16.3 42.9-34.9 55.7-18.6 12.8-42.7 17.8-64.5 12.1C50.2 161.7 31.3 145.9 19.6 125.8 7.9 105.7 3.4 81.4 9.9 60.1 16.4 38.8 33.9 20.5 54.5 11.2c12.5-5.7 26.6-7 40.7-5.6z',
+  },
+  {
+    variant: 'c',
+    style: 'top: 35%; left: 38%; width: 140px; height: 160px;',
+    viewBox: '0 0 140 160',
+    d: 'M70.5 4.2c19.3 1.1 38.2 11.5 49.6 27.1 11.4 15.6 15.4 36.4 11.2 54.9-4.2 18.5-16.6 34.7-32.5 44.4-15.9 9.7-35.3 12.9-52.4 7.6-17.1-5.3-31.9-19.1-39.5-36.2C-0.7 84.9-1.1 64.3 5.4 47.2 11.9 30.1 25.3 16.5 41.8 9.5c9.3-3.9 19.2-5.8 28.7-5.3z',
+  },
+];
+---
+
+<section
+  id="hero"
+  aria-labelledby="hero-heading"
+  class="bg-paper relative overflow-hidden md:min-h-[880px]"
+>
+  <div class="grid grid-cols-1 md:grid-cols-12 xl:grid-cols-[1fr_480px] 2xl:grid-cols-[1fr_600px] md:min-h-[880px]">
+    {/* 左カラム: Main（テキスト + CTA、紙色背景、中央寄せ） */}
+    <div class="md:col-span-8 xl:col-auto relative flex flex-col justify-center
+                px-6 md:px-12 lg:px-[90px] 2xl:px-[120px]
+                py-16 md:py-[110px]">
+
+      {/* sage blob 3 個（左カラム背景、z-0、pointer-events なし、静止表示・2026-05-20 常時アニメ撤去） */}
+      <div aria-hidden="true" class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {blobs.map((b) => (
+          <svg
+            class="absolute"
+            style={`${b.style} opacity: 0.15; color: var(--color-sage-light);`}
+            viewBox={b.viewBox}
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path d={b.d} />
+          </svg>
+        ))}
+      </div>
+
+      <div class="relative z-10">
+        {/* 32px ガター */}
+        <div aria-hidden="true" class="h-6 md:h-8"></div>
+
+        {/* H1: 3 行構成、2 行目だけセージ色 — mask-up でラップ */}
+        <h1
+          id="hero-heading"
+          class="font-serif font-bold text-ink leading-[1.3] tracking-[0.017em]
+                 text-[40px] sm:text-[48px] md:text-[56px] lg:text-[60px] 2xl:text-[80px]"
+        >
+          <span class="mask-up" style="transition-delay: 0s;"><span>先生は、</span></span><br />
+          <span class="mask-up" style="transition-delay: 0.15s;"><span class="text-sage">教えることに</span></span><br />
+          <span class="mask-up" style="transition-delay: 0.30s;"><span>集中していい。</span></span>
+        </h1>
+
+        {/* 32px ガター */}
+        <div aria-hidden="true" class="h-6 md:h-8"></div>
+
+        {/* サブコピー — mask-up */}
+        <p class="text-[15px] md:text-[16px] 2xl:text-[20px] leading-[1.9] text-muted max-w-[640px] 2xl:max-w-none">
+          <span class="mask-up" style="transition-delay: 0.50s;"><span>保護者レポートも、退塾の予兆も、AI が丁寧に引き受けます。</span></span>
+        </p>
+
+        {/* 48px ガター */}
+        <div aria-hidden="true" class="h-9 md:h-12"></div>
+
+        {/* CTA 群（mask-up は外側、レイアウトは hero-cta-row が担当） */}
+        <span class="mask-up" style="transition-delay: 0.70s;">
+          <span class="hero-cta-row">
+            <button
+              type="button"
+              data-form-trigger
+              class="inline-flex items-center justify-center bg-ink hover:bg-ink-darker text-cream
+                     text-[14px] 2xl:text-[16px] font-bold tracking-[0.07em]
+                     px-9 2xl:px-12 py-5 2xl:py-6 rounded-[4px] transition-colors cursor-pointer border-0"
+              aria-label="30分・無料相談を予約する（予約フォームを開く）"
+            >
+              30分・無料相談を予約する
+            </button>
+            <a
+              href="#beta"
+              class="inline-flex items-center gap-2 bg-cream text-ink border border-ink
+                     text-[14px] 2xl:text-[16px] font-semibold tracking-[0.07em]
+                     px-9 2xl:px-12 py-5 2xl:py-6 rounded-[4px] hover:bg-ink hover:text-cream transition-colors"
+              aria-label="資料ダウンロード（ベータ募集セクションへ移動）"
+            >
+              <span>資料ダウンロード</span>
+              <span aria-hidden="true">↓</span>
+            </a>
+          </span>
+        </span>
+
+        {/* 40px ガター + フッター */}
+        <div aria-hidden="true" class="h-8 md:h-10"></div>
+        <div class="flex items-center gap-3 text-[11px] font-medium tracking-[0.09em] text-muted">
+          <span aria-hidden="true" class="block w-1.5 h-1.5 rounded-full bg-terracotta"></span>
+          <span>Made with care in Tokyo&nbsp;&nbsp;/&nbsp;&nbsp;Co-Thrive Labs</span>
+        </div>
+      </div>
+    </div>
+
+    {/* 右カラム: Side（REPORT + ALERT パネル、連続配置・gap 0） */}
+    <div class="md:col-span-4 xl:col-auto flex flex-col w-full md:max-w-[480px] md:ml-auto xl:max-w-none xl:ml-0">
+      {/* REPORT パネル（sage-dark 背景、左側のみ角丸 12px、コンテンツ下寄せ） */}
+      <article
+        class="relative overflow-hidden
+               px-6 md:px-10 2xl:px-14 py-10 2xl:py-14
+               flex flex-col justify-end gap-4 2xl:gap-6
+               min-h-[420px] md:flex-1
+               rounded-none md:rounded-tl-[12px] md:rounded-bl-[12px]"
+        style="background-color: var(--color-sage-dark);
+               box-shadow: -3px 6px 18px rgba(90, 122, 74, 0.14), 0 0 36px rgba(255, 255, 255, 0.08);"
+        aria-label="保護者レポート機能"
+      >
+        <span aria-hidden="true"
+              class="font-sans text-[11px] font-bold tracking-[0.27em]"
+              style="color: var(--color-sage-light);">
+          REPORT
+        </span>
+        <h2 class="font-serif font-bold text-[24px] md:text-[28px] 2xl:text-[36px] leading-[1.5] text-cream">
+          保護者レポートを、<br />丁寧に。
+        </h2>
+
+        {/* スリム細長棒グラフ 5 本（4 本目を cream 強調） — bar-grow アニメ */}
+        <div
+          class="flex items-end gap-3 mt-2"
+          role="img"
+          aria-label="保護者レポート作成パターンの棒グラフ 5 本（4 本目を強調）"
+        >
+          <span class="w-6 rounded-t-[4px] bar-grow"
+                style="--bar-height: 60px; background-color: var(--color-sage-light);"></span>
+          <span class="w-6 rounded-t-[4px] bar-grow"
+                style="--bar-height: 80px; transition-delay: 0.10s; background-color: var(--color-sage-light);"></span>
+          <span class="w-6 rounded-t-[4px] bar-grow"
+                style="--bar-height: 48px; transition-delay: 0.20s; background-color: var(--color-sage-light);"></span>
+          <span class="w-6 rounded-t-[4px] bar-grow"
+                style="--bar-height: 100px; transition-delay: 0.80s; background-color: var(--color-cream);"></span>
+          <span class="w-6 rounded-t-[4px] bar-grow"
+                style="--bar-height: 72px; transition-delay: 0.40s; background-color: var(--color-sage-light);"></span>
+        </div>
+      </article>
+
+      {/* ALERT パネル（terracotta 背景、左側のみ角丸 12px、固定 240px、コンテンツ下寄せ） */}
+      <article
+        class="relative overflow-hidden
+               px-6 md:px-8 2xl:px-12 py-8 2xl:py-10
+               flex flex-col justify-end gap-3
+               min-h-[240px] md:h-[240px] 2xl:h-[280px]
+               rounded-none md:rounded-tl-[12px] md:rounded-bl-[12px]"
+        style="background-color: var(--color-terracotta);
+               box-shadow: -3px 6px 18px rgba(201, 123, 92, 0.14), 0 0 36px rgba(255, 255, 255, 0.08);"
+        aria-label="退塾予兆 ALERT 機能"
+      >
+        <span aria-hidden="true"
+              class="font-sans text-[11px] font-bold tracking-[0.27em]"
+              style="color: var(--color-terracotta-light);">
+          ALERT
+        </span>
+        <h2 class="font-serif font-bold text-[22px] md:text-[24px] 2xl:text-[28px] text-cream">
+          そっと、知らせる。
+        </h2>
+
+        {/* スライダードット 3 つ（opacity 1 / 0.7 / 0.4） — 静止表示（2026-05-20 常時アニメ撤去） */}
+        <div
+          class="flex gap-1.5"
+          role="group"
+          aria-label="サンプル生徒切替インジケーター"
+        >
+          <span aria-hidden="true"
+                class="block w-3 h-3 rounded-full bg-cream"
+                style="opacity: 1;"></span>
+          <span aria-hidden="true"
+                class="block w-3 h-3 rounded-full bg-cream"
+                style="opacity: 0.7;"></span>
+          <span aria-hidden="true"
+                class="block w-3 h-3 rounded-full bg-cream"
+                style="opacity: 0.4;"></span>
+        </div>
+      </article>
+    </div>
+  </div>
+
+</section>
+
+<style>
+  /* CTA 行: mask-up の内側で flex レイアウトを担う */
+  .hero-cta-row {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+</style>
+
+<script>
+  function fireHeroMasks() {
+    requestAnimationFrame(() => {
+      document.querySelectorAll('#hero .mask-up').forEach((el) => {
+        el.classList.add('is-active');
+      });
+    });
+  }
+
+  function setupBarGrowIO() {
+    const reportArticle = document.querySelector('#hero article[aria-label="保護者レポート機能"]');
+    if (!reportArticle) return;
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) {
+      reportArticle.querySelectorAll('.bar-grow').forEach((el) => el.classList.add('is-active'));
+      return;
+    }
+
+    const io = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.querySelectorAll('.bar-grow').forEach((el) => el.classList.add('is-active'));
+            observer.unobserve(e.target);
+          }
+        });
+      },
+      { rootMargin: '-50px 0px', threshold: 0.3 }
+    );
+    io.observe(reportArticle);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      fireHeroMasks();
+      setupBarGrowIO();
+    });
+  } else {
+    fireHeroMasks();
+    setupBarGrowIO();
+  }
+</script>
