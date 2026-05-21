@@ -9,14 +9,16 @@
  * - Turnstile は送信ボタン直前に配置。siteKey 未設定時は MOCKED_FOR_LOCAL_TESTING で
  *   ダミートークン経路に自動切替（useContactForm から onTurnstileSuccess で受領）
  */
-import TurnstileWidget from './TurnstileWidget.astro';
+import TurnstileWidget from "./TurnstileWidget.astro";
 
 const turnstileSiteKey =
   (import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined) ??
-  'MOCKED_FOR_LOCAL_TESTING';
+  "MOCKED_FOR_LOCAL_TESTING";
 ---
 
-{/* モーダル: 初期 hidden、JS で open 制御。aria-modal は open 時のみ true（hidden 中は付けない） */}
+{
+  /* モーダル: 初期 hidden、JS で open 制御。aria-modal は open 時のみ true（hidden 中は付けない） */
+}
 <div
   id="contact-modal"
   class="contact-modal"
@@ -25,19 +27,25 @@ const turnstileSiteKey =
   aria-describedby="contact-modal-lead"
   hidden
 >
-  <div
-    class="contact-modal__dialog"
-    data-contact-modal-dialog
-    role="document"
-  >
+  <div class="contact-modal__dialog" data-contact-modal-dialog role="document">
     <button
       type="button"
       class="contact-modal__close"
       data-contact-modal-close
       aria-label="フォームを閉じる"
     >
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M5 5L15 15M15 5L5 15"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"></path>
       </svg>
     </button>
 
@@ -45,16 +53,14 @@ const turnstileSiteKey =
       30分・無料相談のご予約
     </h2>
     <p id="contact-modal-lead" class="contact-modal__lead">
-      下記フォームをご記入の上ご送信ください。<strong>2営業日以内</strong>に こすらぼ（Co-Thrive Labs） JukuMate担当よりカレンダー招待をお送りします。
+      下記フォームをご記入の上ご送信ください。<strong>2営業日以内</strong>に
+      こすらぼ（Co-Thrive Labs） JukuMate担当よりカレンダー招待をお送りします。
     </p>
 
-    <form
-      class="cf-form"
-      data-contact-form
-      data-cf-state="idle"
-      novalidate
-    >
-      {/* ハニーポット: 視認不可・Tab 順から外す（spammer 自動入力のみが値を入れる） */}
+    <form class="cf-form" data-contact-form data-cf-state="idle" novalidate>
+      {
+        /* ハニーポット: 視認不可・Tab 順から外す（spammer 自動入力のみが値を入れる） */
+      }
       <div class="cf-honeypot" aria-hidden="true">
         <label for="cf-website">ウェブサイト（記入不要）</label>
         <input
@@ -84,7 +90,12 @@ const turnstileSiteKey =
             aria-describedby="cf-juku-name-error"
             autocomplete="organization"
           />
-          <p id="cf-juku-name-error" class="cf-error-message" data-cf-error-for="juku_name"></p>
+          <p
+            id="cf-juku-name-error"
+            class="cf-error-message"
+            data-cf-error-for="juku_name"
+          >
+          </p>
         </div>
 
         {/* 2. ご担当者名 */}
@@ -103,7 +114,12 @@ const turnstileSiteKey =
             aria-describedby="cf-contact-name-error"
             autocomplete="name"
           />
-          <p id="cf-contact-name-error" class="cf-error-message" data-cf-error-for="contact_name"></p>
+          <p
+            id="cf-contact-name-error"
+            class="cf-error-message"
+            data-cf-error-for="contact_name"
+          >
+          </p>
         </div>
 
         {/* 3. メールアドレス */}
@@ -123,13 +139,20 @@ const turnstileSiteKey =
             autocomplete="email"
             inputmode="email"
           />
-          <p id="cf-email-error" class="cf-error-message" data-cf-error-for="email"></p>
+          <p
+            id="cf-email-error"
+            class="cf-error-message"
+            data-cf-error-for="email"
+          >
+          </p>
         </div>
 
         {/* 4. 生徒数 */}
         <div class="cf-field">
           <label for="cf-student-count" class="cf-label">
-            生徒数（おおよそ）<span class="cf-required" aria-hidden="true">*</span>
+            生徒数（おおよそ）<span class="cf-required" aria-hidden="true"
+              >*</span
+            >
           </label>
           <select
             id="cf-student-count"
@@ -146,7 +169,12 @@ const turnstileSiteKey =
             <option value="151-300">151〜300名</option>
             <option value="301〜">301名以上</option>
           </select>
-          <p id="cf-student-count-error" class="cf-error-message" data-cf-error-for="student_count"></p>
+          <p
+            id="cf-student-count-error"
+            class="cf-error-message"
+            data-cf-error-for="student_count"
+          >
+          </p>
         </div>
 
         {/* 5. 対象学年帯（自動返信メールの分岐キー） */}
@@ -168,7 +196,12 @@ const turnstileSiteKey =
             <option value="daiju">大学受験</option>
             <option value="sogo">総合・その他</option>
           </select>
-          <p id="cf-target-error" class="cf-error-message" data-cf-error-for="target"></p>
+          <p
+            id="cf-target-error"
+            class="cf-error-message"
+            data-cf-error-for="target"
+          >
+          </p>
         </div>
 
         {/* 6. 既存の塾管理ソフト（任意） */}
@@ -185,13 +218,22 @@ const turnstileSiteKey =
             placeholder="特になし / Comiru / その他"
             aria-describedby="cf-existing-saas-error"
           />
-          <p id="cf-existing-saas-error" class="cf-error-message" data-cf-error-for="existing_saas"></p>
+          <p
+            id="cf-existing-saas-error"
+            class="cf-error-message"
+            data-cf-error-for="existing_saas"
+          >
+          </p>
         </div>
 
-        {/* 7. 希望日時候補（flatpickr multiple、上限 3、平日のみ、翌々日以降） */}
+        {
+          /* 7. 希望日時候補（flatpickr multiple、上限 3、平日のみ、翌々日以降） */
+        }
         <div class="cf-field">
           <label for="cf-candidates" class="cf-label">
-            希望日時 候補（1〜3件）<span class="cf-required" aria-hidden="true">*</span>
+            希望日時 候補（1〜3件）<span class="cf-required" aria-hidden="true"
+              >*</span
+            >
           </label>
           <input
             id="cf-candidates"
@@ -207,8 +249,18 @@ const turnstileSiteKey =
           <p id="cf-candidates-help" class="cf-help">
             平日のみ・翌々日以降・最大3候補までご選択いただけます。
           </p>
-          <div class="cf-candidates-summary" data-cf-candidates-summary aria-live="polite"></div>
-          <p id="cf-candidates-error" class="cf-error-message" data-cf-error-for="candidates"></p>
+          <div
+            class="cf-candidates-summary"
+            data-cf-candidates-summary
+            aria-live="polite"
+          >
+          </div>
+          <p
+            id="cf-candidates-error"
+            class="cf-error-message"
+            data-cf-error-for="candidates"
+          >
+          </p>
         </div>
 
         {/* 8. 希望時間帯（共通） */}
@@ -216,7 +268,12 @@ const turnstileSiteKey =
           <legend class="cf-label">
             希望時間帯<span class="cf-required" aria-hidden="true">*</span>
           </legend>
-          <div class="cf-radio-group" role="radiogroup" aria-required="true" aria-describedby="cf-time-slot-error">
+          <div
+            class="cf-radio-group"
+            role="radiogroup"
+            aria-required="true"
+            aria-describedby="cf-time-slot-error"
+          >
             <label class="cf-radio-option">
               <input type="radio" name="time_slot" value="morning" required />
               <span>午前（9:00 - 12:00）</span>
@@ -230,7 +287,12 @@ const turnstileSiteKey =
               <span>夜間（18:00 - 21:00）</span>
             </label>
           </div>
-          <p id="cf-time-slot-error" class="cf-error-message" data-cf-error-for="time_slot"></p>
+          <p
+            id="cf-time-slot-error"
+            class="cf-error-message"
+            data-cf-error-for="time_slot"
+          >
+          </p>
         </fieldset>
 
         {/* 9. 個人情報の取扱方針同意 */}
@@ -246,12 +308,17 @@ const turnstileSiteKey =
           <label for="cf-consent">
             <strong>個人情報の取扱方針に同意します</strong>
             <span class="cf-help" style="display:block;">
-              取得項目は塾運営の業務連絡に必要な最小限のみ。AI 学習用途には使用しません。
-              生徒個人を特定する情報は取得しません。
+              取得項目は塾運営の業務連絡に必要な最小限のみ。AI
+              学習用途には使用しません。 生徒個人を特定する情報は取得しません。
             </span>
           </label>
         </div>
-        <p id="cf-consent-error" class="cf-error-message" data-cf-error-for="consent"></p>
+        <p
+          id="cf-consent-error"
+          class="cf-error-message"
+          data-cf-error-for="consent"
+        >
+        </p>
 
         {/* エラーバナー（送信エラー時のみ表示） */}
         <div class="cf-error-banner" role="alert" data-cf-error-banner>
@@ -259,7 +326,9 @@ const turnstileSiteKey =
         </div>
       </div>
 
-      {/* Turnstile: 送信ボタン直前に配置。トークンは window.onTurnstileSuccess 経由で useContactForm が受領 */}
+      {
+        /* Turnstile: 送信ボタン直前に配置。トークンは window.onTurnstileSuccess 経由で useContactForm が受領 */
+      }
       <div class="cf-turnstile-wrapper" data-cf-turnstile-slot>
         <TurnstileWidget
           siteKey={turnstileSiteKey}
@@ -291,10 +360,12 @@ const turnstileSiteKey =
       <div class="cf-success" role="status" tabindex="-1" data-cf-success>
         <h3 class="cf-success__title">お申込みありがとうございます。</h3>
         <p class="cf-success__body">
-          2 営業日以内に、こすらぼ（Co-Thrive Labs） JukuMate担当より<br />
-          カレンダー招待をお送りします。<br />
-          ご記入のメールアドレス宛にも、ご確認のメールをお送りしました。<br />
-          （届かない場合は迷惑メールフォルダもご確認ください）
+          <span class="md:whitespace-nowrap">2営業日以内に、こすらぼ（Co-Thrive Labs）</span><span class="md:whitespace-nowrap">JukuMate担当よりカレンダー招待をお送りします。</span
+          ><br />
+          <span class="md:whitespace-nowrap">ご記入のメールアドレス宛にも、ご確認のメールを</span><span class="md:whitespace-nowrap">お送りしました。</span
+          ><br />
+          （届かない場合は迷惑メールフォルダもご確認<span class="md:whitespace-nowrap">ください</span
+          >）
         </p>
         <button
           type="button"
