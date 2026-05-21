@@ -245,6 +245,12 @@ function initFlatpickrIfNeeded() {
   minDate.setHours(0, 0, 0, 0);
   minDate.setDate(minDate.getDate() + MIN_DAYS_AHEAD);
 
+  // モーダル内 dialog 要素に append（デフォルトの document.body 直下だと
+  // モーダル外＝ヒーロー領域に飛び出すバグへの対処）。
+  // 取得失敗時は flatpickr 内部で document.body にフォールバックさせる。
+  const dialogEl = input.closest('.contact-modal__dialog');
+  const appendTo = dialogEl instanceof HTMLElement ? dialogEl : undefined;
+
   fpInstance = flatpickr(input, {
     mode: 'multiple',
     locale: Japanese,
@@ -252,6 +258,72 @@ function initFlatpickrIfNeeded() {
     minDate,
     disableMobile: true,
     allowInput: false,
+    appendTo,
+    // appendTo した dialog（position:relative）に対する flatpickr 標準 position 関数は
+    // window.pageXOffset / pageYOffset 基準で絶対座標を計算するため、相対位置親内に
+    // append されると座標がズレる（dialog の left/top 分だけ余計にオフセット）。
+    // → 自前で「dialog 基準のオフセット座標」を計算してセットする。
+    // 仕様:
+    //   - 縦: input の真下に固定（input.bottom + 4）
+    //   - 横: input.left に揃える。ただし dialog 右端を超える場合は dialog 右端 - cal 幅 にクランプ
+    //   - calendar が dialog 下端を超えても、dialog 自体が overflow-y: auto + overlay が
+    //     scroll するので問題ない（さき三次テスト指摘のヒーロー領域飛び出し再発防止のため上配置はしない）
+    position: (instance, customElement) => {
+      const cal = instance.calendarContainer;
+      const dialog = dialogEl;
+      if (!cal || !(dialog instanceof HTMLElement)) return;
+
+      const anchor = (customElement ?? input) as HTMLElement;
+
+      // cal の offsetParent は .contact-modal__dialog（position:relative）。
+      // 描画後の実測座標で「input 真下」になるよう一度仮配置 → 補正の 2-pass で確実に合わせる。
+      // 単純な offsetTop 累積だと dialog 子孫に position:relative 要素があるとループ破綻する。
+      const place = (top: number, left: number) => {
+        cal.style.top = `${top}px`;
+        cal.style.left = `${left}px`;
+        cal.style.right = 'auto';
+      };
+
+      // 1-pass: ざっくり位置
+      place(0, 0);
+
+      // ここで cal は dialog 内 (0,0) に置かれている。getBoundingClientRect で
+      // dialog 内オフセットを実測（getBoundingClientRect は overlay スクロール込みの viewport 座標
+      // だが、両方を差し引くので相対値はスクロールの影響を受けない）。
+      const dialogRect = dialog.getBoundingClientRect();
+      const anchorRect = anchor.getBoundingClientRect();
+      const calRect = cal.getBoundingClientRect();
+
+      // 目標: cal.top === anchor.bottom + 4
+      const desiredTop = anchorRect.bottom - dialogRect.top + 4;
+      // 現在 cal の dialog 内 top
+      const currentTop = calRect.top - dialogRect.top;
+      // localTop を desiredTop に合わせる補正値
+      const correctedTop = 0 + (desiredTop - currentTop);
+
+      // 横位置: input.left に揃える（dialog 内オフセット）
+      const desiredLeft = anchorRect.left - dialogRect.left;
+      const currentLeft = calRect.left - dialogRect.left;
+      let correctedLeft = 0 + (desiredLeft - currentLeft);
+
+      const calWidth = cal.offsetWidth;
+      const dialogInnerWidth = dialog.clientWidth;
+      const safetyMargin = 8;
+      // 右はみ出し防止: dialog 内幅を超えたらクランプ
+      if (correctedLeft + calWidth + safetyMargin > dialogInnerWidth) {
+        correctedLeft = Math.max(safetyMargin, dialogInnerWidth - calWidth - safetyMargin);
+      }
+      if (correctedLeft < safetyMargin) {
+        correctedLeft = safetyMargin;
+      }
+
+      place(correctedTop, correctedLeft);
+
+      // 矢印は上向き（calendar が input の下にあるため）
+      cal.classList.add('arrowTop');
+      cal.classList.remove('arrowBottom', 'rightMost', 'centerMost');
+    },
+    positionElement: input,
     // 平日のみ（土日 disable）
     disable: [(date: Date) => date.getDay() === 0 || date.getDay() === 6],
     onChange: (selectedDates: Date[], _dateStr: string, instance: FlatpickrInstance) => {

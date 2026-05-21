@@ -414,6 +414,16 @@
   border: 1px solid var(--color-line);
   border-radius: 8px;
 }
+
+/* モーダル内に append された flatpickr カレンダーは、モーダルの z-index(100) を超えて
+   ダイアログ要素より前面に出す。.contact-modal__dialog は position:relative なので
+   ここで指定する z-index は dialog 内の stacking で評価される。
+   max-width は dialog 幅を超えないようにする保険（さき三次テストで右はみ出し検出のため）。
+   標準幅 308px は維持しつつ、dialog 内幅が狭い場合だけ自動で縮む。 */
+.contact-modal__dialog .flatpickr-calendar {
+  z-index: 110;
+  max-width: calc(100% - 16px);
+}
 .fp-sage-theme .flatpickr-day.selected,
 .fp-sage-theme .flatpickr-day.startRange,
 .fp-sage-theme .flatpickr-day.endRange,
